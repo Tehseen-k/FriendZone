@@ -1,0 +1,10 @@
+{
+  "resourceName": "FriendZoneUsers",
+  "tableName": "FriendZoneUsers",
+  "partitionKey": {
+    "fieldName": "userId",
+    "fieldType": "string"
+  },
+  "gsi": [],
+  "triggerFunctions": []
+}

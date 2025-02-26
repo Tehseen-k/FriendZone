@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            // "name": "Flutter (lib/ui/screens/home_screen.dart/home_veiw_mdel.dart)",
+            "name": "Flutter (lib/main.dart/ui/screens/home_screen.dart/home_view_model.dart)",
+            "type": "dart",
+            "request": "launch",
+            // "program": "lib/ui/screens/home_screen.dart/home_veiw_mdel.dart"
+            "program": "lib/main.dart"
+        }
+    ]
+}

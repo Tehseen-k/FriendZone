@@ -1,0 +1,78 @@
+# This "input" configures a global authorization rule to enable public access to
+# all models in this schema. Learn more about authorization rules here: https://docs.amplify.aws/cli/graphql/authorization-rules
+# Authorization rule for public access (for testing only)
+input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONLY!
+
+type User @model {
+  id: ID!
+  username: String!
+  email: String!
+  profileImageKey: String
+  userImageKeys: [String]
+  profileVideoKey: [String]
+  interests: [String!]
+  hobbies: [String!]
+  address: String
+  latitude: Float
+  longitude: Float
+  radius: Float
+  introduction: String
+  visible: Boolean
+  chatParticipant: [ChatParticipant] @hasMany(indexName: "byUser", fields: ["id"])
+  messages: [Message] @hasMany(indexName: "byUser", fields: ["id"])
+  readReceipts: [ReadReceipt] @hasMany(indexName: "byUser", fields: ["id"])
+  chatRoomsAsAdmin: [ChatRoom] @hasMany(indexName: "byAdmin", fields: ["id"]) # Added
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type ChatRoom @model {
+  id: ID!
+  name: String
+  isGroupChat: Boolean!
+  adminId: ID @index(name: "byAdmin", sortKeyFields: ["createdAt"]) # Added index
+  admin: User @belongsTo(fields: ["adminId"]) # Now valid
+  participants: [ChatParticipant] @hasMany(indexName: "byChatRoom", fields: ["id"])
+  messages: [Message] @hasMany(indexName: "byChatRoom", fields: ["id"])
+  lastMessage: String
+  lastMessageTimestamp: AWSDateTime
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type ChatParticipant @model {
+  id: ID!
+  userId: ID! @index(name: "byUser")
+  user: User! @belongsTo(fields: ["userId"])
+  chatRoomId: ID! @index(name: "byChatRoom")
+  chatRoom: ChatRoom! @belongsTo(fields: ["chatRoomId"])
+  role: String
+  lastReadAt: AWSDateTime
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type Message @model {
+  id: ID!
+  chatRoomId: ID! @index(name: "byChatRoom")
+  chatRoom: ChatRoom! @belongsTo(fields: ["chatRoomId"])
+  senderId: ID! @index(name: "byUser")
+  sender: User! @belongsTo(fields: ["senderId"])
+  content: String
+  mediaType: String
+  mediaKey: String
+  readReceipts: [ReadReceipt] @hasMany(indexName: "byMessage", fields: ["id"])
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type ReadReceipt @model {
+  id: ID!
+  messageId: ID! @index(name: "byMessage")
+  message: Message! @belongsTo(fields: ["messageId"])
+  userId: ID! @index(name: "byUser")
+  user: User! @belongsTo(fields: ["userId"])
+  readAt: AWSDateTime!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}

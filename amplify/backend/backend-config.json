@@ -1,0 +1,165 @@
+{
+  "api": {
+    "friendzone": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "friendzonefbdf9833"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "API Gateway"
+    },
+    "friendzonegraphql": {
+      "dependsOn": [],
+      "output": {
+        "authConfig": {
+          "additionalAuthenticationProviders": [],
+          "defaultAuthentication": {
+            "apiKeyConfig": {
+              "apiKeyExpirationDate": "2026-02-24T18:49:55.207Z",
+              "apiKeyExpirationDays": 365,
+              "description": "friend zone graph ql api key"
+            },
+            "authenticationType": "API_KEY"
+          }
+        }
+      },
+      "providerPlugin": "awscloudformation",
+      "service": "AppSync"
+    }
+  },
+  "auth": {
+    "friendzone5704498f": {
+      "customAuth": false,
+      "dependsOn": [
+        {
+          "attributes": [
+            "Arn",
+            "Name"
+          ],
+          "category": "function",
+          "resourceName": "friendzone5704498fPostConfirmation",
+          "triggerProvider": "Cognito"
+        }
+      ],
+      "frontendAuthConfig": {
+        "mfaConfiguration": "OFF",
+        "mfaTypes": [
+          "SMS"
+        ],
+        "passwordProtectionSettings": {
+          "passwordPolicyCharacters": [],
+          "passwordPolicyMinLength": 8
+        },
+        "signupAttributes": [
+          "EMAIL",
+          "NAME"
+        ],
+        "socialProviders": [
+          "FACEBOOK",
+          "GOOGLE"
+        ],
+        "usernameAttributes": [
+          "EMAIL"
+        ],
+        "verificationMechanisms": [
+          "EMAIL"
+        ]
+      },
+      "providerPlugin": "awscloudformation",
+      "service": "Cognito"
+    }
+  },
+  "function": {
+    "friendzone5704498fPostConfirmation": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "friendzonefbdf9833": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributeEnvMap": {
+            "Arn": "TABLE_ARN",
+            "Name": "TABLE_NAME"
+          },
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "storage",
+          "resourceName": "FriendZoneUsers"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    }
+  },
+  "parameters": {
+    "AMPLIFY_auth_friendzone5704498f_facebookAppId": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "friendzone5704498f"
+        }
+      ]
+    },
+    "AMPLIFY_auth_friendzone5704498f_googleClientId": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "friendzone5704498f"
+        }
+      ]
+    },
+    "AMPLIFY_function_friendzone5704498fPostConfirmation_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "friendzone5704498fPostConfirmation"
+        }
+      ]
+    },
+    "AMPLIFY_function_friendzone5704498fPostConfirmation_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "friendzone5704498fPostConfirmation"
+        }
+      ]
+    },
+    "AMPLIFY_function_friendzonefbdf9833_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "friendzonefbdf9833"
+        }
+      ]
+    },
+    "AMPLIFY_function_friendzonefbdf9833_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "friendzonefbdf9833"
+        }
+      ]
+    }
+  },
+  "storage": {
+    "FriendZoneUsers": {
+      "providerPlugin": "awscloudformation",
+      "service": "DynamoDB"
+    },
+    "friendzonefiles": {
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "S3"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "293732469828",
+    "project_id": "freind-zone-21d5a",
+    "storage_bucket": "freind-zone-21d5a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:293732469828:android:94d206e9e9f72542f44011",
+        "android_client_info": {
+          "package_name": "com.example.freindzone"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWJ-nB9TPOlKWzIykrh9puSKr5x4m3n5o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

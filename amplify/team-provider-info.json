@@ -1,0 +1,43 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-friendzone-dev-ee3be-authRole",
+      "UnauthRoleArn": "arn:aws:iam::940482446120:role/amplify-friendzone-dev-ee3be-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::940482446120:role/amplify-friendzone-dev-ee3be-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-friendzone-dev-ee3be-deployment",
+      "UnauthRoleName": "amplify-friendzone-dev-ee3be-unauthRole",
+      "StackName": "amplify-friendzone-dev-ee3be",
+      "StackId": "arn:aws:cloudformation:us-east-1:940482446120:stack/amplify-friendzone-dev-ee3be/70d5d790-ee58-11ef-b9ff-0afff80339ff",
+      "AmplifyAppId": "d3394385h3hs9q",
+      "AuthTriggerTemplateURL": "https://s3.amazonaws.com/amplify-friendzone-dev-ee3be-deployment/amplify-cfn-templates/auth/auth-trigger-cloudformation-template.json",
+      "APIGatewayAuthURL": "https://s3.amazonaws.com/amplify-friendzone-dev-ee3be-deployment/amplify-cfn-templates/api/APIGatewayAuthStack.json"
+    },
+    "categories": {
+      "auth": {
+        "friendzone5704498f": {
+          "facebookAppId": "623672113961525",
+          "googleClientId": "8909799113-40miat6mesqct653t62h0736q2j16gvr.apps.googleusercontent.com"
+        }
+      },
+      "function": {
+        "friendzone5704498fPostConfirmation": {
+          "deploymentBucketName": "amplify-friendzone-dev-ee3be-deployment",
+          "s3Key": "amplify-builds/friendzone5704498fPostConfirmation-794b554666494f455238-build.zip"
+        },
+        "friendzonefbdf9833": {
+          "deploymentBucketName": "amplify-friendzone-dev-ee3be-deployment",
+          "s3Key": "amplify-builds/friendzonefbdf9833-496f6d5337582b327072-build.zip"
+        }
+      },
+      "storage": {
+        "FriendZoneUsers": {},
+        "friendzonefiles": {}
+      },
+      "api": {
+        "friendzone": {},
+        "friendzonegraphql": {}
+      }
+    }
+  }
+}
