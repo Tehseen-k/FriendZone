@@ -129,6 +129,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       );
                     },
                   )
+              
                 : CircleAvatar(
                     radius: 80,
                     backgroundImage: AssetImage("$dynamicAssets/default_avatar.png"),

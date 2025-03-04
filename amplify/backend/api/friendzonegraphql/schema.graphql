@@ -22,6 +22,10 @@ type User @model {
   messages: [Message] @hasMany(indexName: "byUser", fields: ["id"])
   readReceipts: [ReadReceipt] @hasMany(indexName: "byUser", fields: ["id"])
   chatRoomsAsAdmin: [ChatRoom] @hasMany(indexName: "byAdmin", fields: ["id"]) # Added
+  groupsAsAdmin: [Group] @hasMany(indexName: "byAdmin", fields: ["id"])
+  groupMemberships: [GroupMember] @hasMany(indexName: "byUser", fields: ["id"])
+  eventAttendance: [EventAttendee] @hasMany(indexName: "byUser", fields: ["id"])
+  createdEvents: [GroupEvent] @hasMany(indexName: "byCreator", fields: ["id"])
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
 }
@@ -58,6 +62,7 @@ type Message @model {
   chatRoom: ChatRoom! @belongsTo(fields: ["chatRoomId"])
   senderId: ID! @index(name: "byUser")
   sender: User! @belongsTo(fields: ["senderId"])
+  group: Group @hasOne
   content: String
   mediaType: String
   mediaKey: String
@@ -73,6 +78,70 @@ type ReadReceipt @model {
   userId: ID! @index(name: "byUser")
   user: User! @belongsTo(fields: ["userId"])
   readAt: AWSDateTime!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type Group @model {
+  id: ID!
+  name: String!
+  description: String!
+  interests: [String!]
+  hobbies: [String!]
+  latitude: Float!
+  longitude: Float!
+  allowedRadius: Float!
+  locationName: String
+  mediaKeys: [String]
+  groupImageKey:String
+  adminId: ID! @index(name: "byAdmin")
+  admin: User! @belongsTo(fields: ["adminId"])
+  members: [GroupMember] @hasMany(indexName: "byGroup", fields: ["id"])
+  events: [GroupEvent] @hasMany(indexName: "byGroup", fields: ["id"])
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type GroupMember @model {
+  id: ID!
+  userId: ID! @index(name: "byUser")
+  user: User! @belongsTo(fields: ["userId"])
+  groupId: ID! @index(name: "byGroup")
+  group: Group! @belongsTo(fields: ["groupId"])
+  role: String! # 'admin' or 'member'
+  status: String! # 'pending', 'active', 'blocked'
+  joinedAt: AWSDateTime!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type GroupEvent @model {
+  id: ID!
+  title: String!
+  description: String!
+  location: String!
+  latitude: Float
+  longitude: Float
+  startTime: AWSDateTime!
+  endTime: AWSDateTime!
+  eventType: String! # 'meetup', 'activity', 'other'
+  mediaKeys: [String]
+  groupId: ID! @index(name: "byGroup")
+  group: Group! @belongsTo(fields: ["groupId"])
+  creatorId: ID! @index(name: "byCreator")
+  creator: User! @belongsTo(fields: ["creatorId"])
+  attendees: [EventAttendee] @hasMany(indexName: "byEvent", fields: ["id"])
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type EventAttendee @model {
+  id: ID!
+  userId: ID! @index(name: "byUser")
+  user: User! @belongsTo(fields: ["userId"])
+  eventId: ID! @index(name: "byEvent")
+  event: GroupEvent! @belongsTo(fields: ["eventId"])
+  status: String! # 'going', 'maybe', 'not_going'
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
 }

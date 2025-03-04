@@ -45,6 +45,10 @@ class User extends amplify_core.Model {
   final List<Message>? _messages;
   final List<ReadReceipt>? _readReceipts;
   final List<ChatRoom>? _chatRoomsAsAdmin;
+  final List<Group>? _groupsAsAdmin;
+  final List<GroupMember>? _groupMemberships;
+  final List<EventAttendee>? _eventAttendance;
+  final List<GroupEvent>? _createdEvents;
   final amplify_core.TemporalDateTime? _createdAt;
   final amplify_core.TemporalDateTime? _updatedAt;
 
@@ -147,6 +151,22 @@ class User extends amplify_core.Model {
     return _chatRoomsAsAdmin;
   }
   
+  List<Group>? get groupsAsAdmin {
+    return _groupsAsAdmin;
+  }
+  
+  List<GroupMember>? get groupMemberships {
+    return _groupMemberships;
+  }
+  
+  List<EventAttendee>? get eventAttendance {
+    return _eventAttendance;
+  }
+  
+  List<GroupEvent>? get createdEvents {
+    return _createdEvents;
+  }
+  
   amplify_core.TemporalDateTime? get createdAt {
     return _createdAt;
   }
@@ -155,9 +175,9 @@ class User extends amplify_core.Model {
     return _updatedAt;
   }
   
-  const User._internal({required this.id, required username, required email, profileImageKey, userImageKeys, profileVideoKey, interests, hobbies, address, latitude, longitude, radius, introduction, visible, chatParticipant, messages, readReceipts, chatRoomsAsAdmin, createdAt, updatedAt}): _username = username, _email = email, _profileImageKey = profileImageKey, _userImageKeys = userImageKeys, _profileVideoKey = profileVideoKey, _interests = interests, _hobbies = hobbies, _address = address, _latitude = latitude, _longitude = longitude, _radius = radius, _introduction = introduction, _visible = visible, _chatParticipant = chatParticipant, _messages = messages, _readReceipts = readReceipts, _chatRoomsAsAdmin = chatRoomsAsAdmin, _createdAt = createdAt, _updatedAt = updatedAt;
+  const User._internal({required this.id, required username, required email, profileImageKey, userImageKeys, profileVideoKey, interests, hobbies, address, latitude, longitude, radius, introduction, visible, chatParticipant, messages, readReceipts, chatRoomsAsAdmin, groupsAsAdmin, groupMemberships, eventAttendance, createdEvents, createdAt, updatedAt}): _username = username, _email = email, _profileImageKey = profileImageKey, _userImageKeys = userImageKeys, _profileVideoKey = profileVideoKey, _interests = interests, _hobbies = hobbies, _address = address, _latitude = latitude, _longitude = longitude, _radius = radius, _introduction = introduction, _visible = visible, _chatParticipant = chatParticipant, _messages = messages, _readReceipts = readReceipts, _chatRoomsAsAdmin = chatRoomsAsAdmin, _groupsAsAdmin = groupsAsAdmin, _groupMemberships = groupMemberships, _eventAttendance = eventAttendance, _createdEvents = createdEvents, _createdAt = createdAt, _updatedAt = updatedAt;
   
-  factory User({String? id, required String username, required String email, String? profileImageKey, List<String>? userImageKeys, List<String>? profileVideoKey, List<String>? interests, List<String>? hobbies, String? address, double? latitude, double? longitude, double? radius, String? introduction, bool? visible, List<ChatParticipant>? chatParticipant, List<Message>? messages, List<ReadReceipt>? readReceipts, List<ChatRoom>? chatRoomsAsAdmin, amplify_core.TemporalDateTime? createdAt, amplify_core.TemporalDateTime? updatedAt}) {
+  factory User({String? id, required String username, required String email, String? profileImageKey, List<String>? userImageKeys, List<String>? profileVideoKey, List<String>? interests, List<String>? hobbies, String? address, double? latitude, double? longitude, double? radius, String? introduction, bool? visible, List<ChatParticipant>? chatParticipant, List<Message>? messages, List<ReadReceipt>? readReceipts, List<ChatRoom>? chatRoomsAsAdmin, List<Group>? groupsAsAdmin, List<GroupMember>? groupMemberships, List<EventAttendee>? eventAttendance, List<GroupEvent>? createdEvents, amplify_core.TemporalDateTime? createdAt, amplify_core.TemporalDateTime? updatedAt}) {
     return User._internal(
       id: id == null ? amplify_core.UUID.getUUID() : id,
       username: username,
@@ -177,6 +197,10 @@ class User extends amplify_core.Model {
       messages: messages != null ? List<Message>.unmodifiable(messages) : messages,
       readReceipts: readReceipts != null ? List<ReadReceipt>.unmodifiable(readReceipts) : readReceipts,
       chatRoomsAsAdmin: chatRoomsAsAdmin != null ? List<ChatRoom>.unmodifiable(chatRoomsAsAdmin) : chatRoomsAsAdmin,
+      groupsAsAdmin: groupsAsAdmin != null ? List<Group>.unmodifiable(groupsAsAdmin) : groupsAsAdmin,
+      groupMemberships: groupMemberships != null ? List<GroupMember>.unmodifiable(groupMemberships) : groupMemberships,
+      eventAttendance: eventAttendance != null ? List<EventAttendee>.unmodifiable(eventAttendance) : eventAttendance,
+      createdEvents: createdEvents != null ? List<GroupEvent>.unmodifiable(createdEvents) : createdEvents,
       createdAt: createdAt,
       updatedAt: updatedAt);
   }
@@ -207,6 +231,10 @@ class User extends amplify_core.Model {
       DeepCollectionEquality().equals(_messages, other._messages) &&
       DeepCollectionEquality().equals(_readReceipts, other._readReceipts) &&
       DeepCollectionEquality().equals(_chatRoomsAsAdmin, other._chatRoomsAsAdmin) &&
+      DeepCollectionEquality().equals(_groupsAsAdmin, other._groupsAsAdmin) &&
+      DeepCollectionEquality().equals(_groupMemberships, other._groupMemberships) &&
+      DeepCollectionEquality().equals(_eventAttendance, other._eventAttendance) &&
+      DeepCollectionEquality().equals(_createdEvents, other._createdEvents) &&
       _createdAt == other._createdAt &&
       _updatedAt == other._updatedAt;
   }
@@ -240,7 +268,7 @@ class User extends amplify_core.Model {
     return buffer.toString();
   }
   
-  User copyWith({String? username, String? email, String? profileImageKey, List<String>? userImageKeys, List<String>? profileVideoKey, List<String>? interests, List<String>? hobbies, String? address, double? latitude, double? longitude, double? radius, String? introduction, bool? visible, List<ChatParticipant>? chatParticipant, List<Message>? messages, List<ReadReceipt>? readReceipts, List<ChatRoom>? chatRoomsAsAdmin, amplify_core.TemporalDateTime? createdAt, amplify_core.TemporalDateTime? updatedAt}) {
+  User copyWith({String? username, String? email, String? profileImageKey, List<String>? userImageKeys, List<String>? profileVideoKey, List<String>? interests, List<String>? hobbies, String? address, double? latitude, double? longitude, double? radius, String? introduction, bool? visible, List<ChatParticipant>? chatParticipant, List<Message>? messages, List<ReadReceipt>? readReceipts, List<ChatRoom>? chatRoomsAsAdmin, List<Group>? groupsAsAdmin, List<GroupMember>? groupMemberships, List<EventAttendee>? eventAttendance, List<GroupEvent>? createdEvents, amplify_core.TemporalDateTime? createdAt, amplify_core.TemporalDateTime? updatedAt}) {
     return User._internal(
       id: id,
       username: username ?? this.username,
@@ -260,6 +288,10 @@ class User extends amplify_core.Model {
       messages: messages ?? this.messages,
       readReceipts: readReceipts ?? this.readReceipts,
       chatRoomsAsAdmin: chatRoomsAsAdmin ?? this.chatRoomsAsAdmin,
+      groupsAsAdmin: groupsAsAdmin ?? this.groupsAsAdmin,
+      groupMemberships: groupMemberships ?? this.groupMemberships,
+      eventAttendance: eventAttendance ?? this.eventAttendance,
+      createdEvents: createdEvents ?? this.createdEvents,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt);
   }
@@ -282,6 +314,10 @@ class User extends amplify_core.Model {
     ModelFieldValue<List<Message>?>? messages,
     ModelFieldValue<List<ReadReceipt>?>? readReceipts,
     ModelFieldValue<List<ChatRoom>?>? chatRoomsAsAdmin,
+    ModelFieldValue<List<Group>?>? groupsAsAdmin,
+    ModelFieldValue<List<GroupMember>?>? groupMemberships,
+    ModelFieldValue<List<EventAttendee>?>? eventAttendance,
+    ModelFieldValue<List<GroupEvent>?>? createdEvents,
     ModelFieldValue<amplify_core.TemporalDateTime?>? createdAt,
     ModelFieldValue<amplify_core.TemporalDateTime?>? updatedAt
   }) {
@@ -304,6 +340,10 @@ class User extends amplify_core.Model {
       messages: messages == null ? this.messages : messages.value,
       readReceipts: readReceipts == null ? this.readReceipts : readReceipts.value,
       chatRoomsAsAdmin: chatRoomsAsAdmin == null ? this.chatRoomsAsAdmin : chatRoomsAsAdmin.value,
+      groupsAsAdmin: groupsAsAdmin == null ? this.groupsAsAdmin : groupsAsAdmin.value,
+      groupMemberships: groupMemberships == null ? this.groupMemberships : groupMemberships.value,
+      eventAttendance: eventAttendance == null ? this.eventAttendance : eventAttendance.value,
+      createdEvents: createdEvents == null ? this.createdEvents : createdEvents.value,
       createdAt: createdAt == null ? this.createdAt : createdAt.value,
       updatedAt: updatedAt == null ? this.updatedAt : updatedAt.value
     );
@@ -376,11 +416,63 @@ class User extends amplify_core.Model {
               .map((e) => ChatRoom.fromJson(new Map<String, dynamic>.from(e?['serializedData'])))
               .toList()
           : null),
+      _groupsAsAdmin = json['groupsAsAdmin']  is Map
+        ? (json['groupsAsAdmin']['items'] is List
+          ? (json['groupsAsAdmin']['items'] as List)
+              .where((e) => e != null)
+              .map((e) => Group.fromJson(new Map<String, dynamic>.from(e)))
+              .toList()
+          : null)
+        : (json['groupsAsAdmin'] is List
+          ? (json['groupsAsAdmin'] as List)
+              .where((e) => e?['serializedData'] != null)
+              .map((e) => Group.fromJson(new Map<String, dynamic>.from(e?['serializedData'])))
+              .toList()
+          : null),
+      _groupMemberships = json['groupMemberships']  is Map
+        ? (json['groupMemberships']['items'] is List
+          ? (json['groupMemberships']['items'] as List)
+              .where((e) => e != null)
+              .map((e) => GroupMember.fromJson(new Map<String, dynamic>.from(e)))
+              .toList()
+          : null)
+        : (json['groupMemberships'] is List
+          ? (json['groupMemberships'] as List)
+              .where((e) => e?['serializedData'] != null)
+              .map((e) => GroupMember.fromJson(new Map<String, dynamic>.from(e?['serializedData'])))
+              .toList()
+          : null),
+      _eventAttendance = json['eventAttendance']  is Map
+        ? (json['eventAttendance']['items'] is List
+          ? (json['eventAttendance']['items'] as List)
+              .where((e) => e != null)
+              .map((e) => EventAttendee.fromJson(new Map<String, dynamic>.from(e)))
+              .toList()
+          : null)
+        : (json['eventAttendance'] is List
+          ? (json['eventAttendance'] as List)
+              .where((e) => e?['serializedData'] != null)
+              .map((e) => EventAttendee.fromJson(new Map<String, dynamic>.from(e?['serializedData'])))
+              .toList()
+          : null),
+      _createdEvents = json['createdEvents']  is Map
+        ? (json['createdEvents']['items'] is List
+          ? (json['createdEvents']['items'] as List)
+              .where((e) => e != null)
+              .map((e) => GroupEvent.fromJson(new Map<String, dynamic>.from(e)))
+              .toList()
+          : null)
+        : (json['createdEvents'] is List
+          ? (json['createdEvents'] as List)
+              .where((e) => e?['serializedData'] != null)
+              .map((e) => GroupEvent.fromJson(new Map<String, dynamic>.from(e?['serializedData'])))
+              .toList()
+          : null),
       _createdAt = json['createdAt'] != null ? amplify_core.TemporalDateTime.fromString(json['createdAt']) : null,
       _updatedAt = json['updatedAt'] != null ? amplify_core.TemporalDateTime.fromString(json['updatedAt']) : null;
   
   Map<String, dynamic> toJson() => {
-    'id': id, 'username': _username, 'email': _email, 'profileImageKey': _profileImageKey, 'userImageKeys': _userImageKeys, 'profileVideoKey': _profileVideoKey, 'interests': _interests, 'hobbies': _hobbies, 'address': _address, 'latitude': _latitude, 'longitude': _longitude, 'radius': _radius, 'introduction': _introduction, 'visible': _visible, 'chatParticipant': _chatParticipant?.map((ChatParticipant? e) => e?.toJson()).toList(), 'messages': _messages?.map((Message? e) => e?.toJson()).toList(), 'readReceipts': _readReceipts?.map((ReadReceipt? e) => e?.toJson()).toList(), 'chatRoomsAsAdmin': _chatRoomsAsAdmin?.map((ChatRoom? e) => e?.toJson()).toList(), 'createdAt': _createdAt?.format(), 'updatedAt': _updatedAt?.format()
+    'id': id, 'username': _username, 'email': _email, 'profileImageKey': _profileImageKey, 'userImageKeys': _userImageKeys, 'profileVideoKey': _profileVideoKey, 'interests': _interests, 'hobbies': _hobbies, 'address': _address, 'latitude': _latitude, 'longitude': _longitude, 'radius': _radius, 'introduction': _introduction, 'visible': _visible, 'chatParticipant': _chatParticipant?.map((ChatParticipant? e) => e?.toJson()).toList(), 'messages': _messages?.map((Message? e) => e?.toJson()).toList(), 'readReceipts': _readReceipts?.map((ReadReceipt? e) => e?.toJson()).toList(), 'chatRoomsAsAdmin': _chatRoomsAsAdmin?.map((ChatRoom? e) => e?.toJson()).toList(), 'groupsAsAdmin': _groupsAsAdmin?.map((Group? e) => e?.toJson()).toList(), 'groupMemberships': _groupMemberships?.map((GroupMember? e) => e?.toJson()).toList(), 'eventAttendance': _eventAttendance?.map((EventAttendee? e) => e?.toJson()).toList(), 'createdEvents': _createdEvents?.map((GroupEvent? e) => e?.toJson()).toList(), 'createdAt': _createdAt?.format(), 'updatedAt': _updatedAt?.format()
   };
   
   Map<String, Object?> toMap() => {
@@ -402,6 +494,10 @@ class User extends amplify_core.Model {
     'messages': _messages,
     'readReceipts': _readReceipts,
     'chatRoomsAsAdmin': _chatRoomsAsAdmin,
+    'groupsAsAdmin': _groupsAsAdmin,
+    'groupMemberships': _groupMemberships,
+    'eventAttendance': _eventAttendance,
+    'createdEvents': _createdEvents,
     'createdAt': _createdAt,
     'updatedAt': _updatedAt
   };
@@ -433,6 +529,18 @@ class User extends amplify_core.Model {
   static final CHATROOMSASADMIN = amplify_core.QueryField(
     fieldName: "chatRoomsAsAdmin",
     fieldType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.model, ofModelName: 'ChatRoom'));
+  static final GROUPSASADMIN = amplify_core.QueryField(
+    fieldName: "groupsAsAdmin",
+    fieldType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.model, ofModelName: 'Group'));
+  static final GROUPMEMBERSHIPS = amplify_core.QueryField(
+    fieldName: "groupMemberships",
+    fieldType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.model, ofModelName: 'GroupMember'));
+  static final EVENTATTENDANCE = amplify_core.QueryField(
+    fieldName: "eventAttendance",
+    fieldType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.model, ofModelName: 'EventAttendee'));
+  static final CREATEDEVENTS = amplify_core.QueryField(
+    fieldName: "createdEvents",
+    fieldType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.model, ofModelName: 'GroupEvent'));
   static final CREATEDAT = amplify_core.QueryField(fieldName: "createdAt");
   static final UPDATEDAT = amplify_core.QueryField(fieldName: "updatedAt");
   static var schema = amplify_core.Model.defineSchema(define: (amplify_core.ModelSchemaDefinition modelSchemaDefinition) {
@@ -549,6 +657,34 @@ class User extends amplify_core.Model {
       isRequired: false,
       ofModelName: 'ChatRoom',
       associatedKey: ChatRoom.ADMIN
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.hasMany(
+      key: User.GROUPSASADMIN,
+      isRequired: false,
+      ofModelName: 'Group',
+      associatedKey: Group.ADMIN
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.hasMany(
+      key: User.GROUPMEMBERSHIPS,
+      isRequired: false,
+      ofModelName: 'GroupMember',
+      associatedKey: GroupMember.USER
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.hasMany(
+      key: User.EVENTATTENDANCE,
+      isRequired: false,
+      ofModelName: 'EventAttendee',
+      associatedKey: EventAttendee.USER
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.hasMany(
+      key: User.CREATEDEVENTS,
+      isRequired: false,
+      ofModelName: 'GroupEvent',
+      associatedKey: GroupEvent.CREATOR
     ));
     
     modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(

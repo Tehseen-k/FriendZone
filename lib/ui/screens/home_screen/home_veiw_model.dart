@@ -10,6 +10,8 @@ import 'package:code_structure/core/model/schedual_meetups.dart';
 import 'package:code_structure/core/model/up_coming_activities.dart';
 import 'package:code_structure/core/others/base_view_model.dart';
 import 'package:code_structure/main.dart';
+import 'package:code_structure/models/Group.dart';
+import 'package:code_structure/models/GroupEvent.dart';
 import 'package:code_structure/models/User.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -18,6 +20,10 @@ import 'package:photo_view/photo_view.dart';
 class HomeScreenVeiwModel extends BaseViewModel {
   List<User?> matchedUsers = [];
   List<User?> nearbyUsers = [];
+  List<Group> nearbyGroups = [];
+  List<Group> matchedGroups = [];
+  List<GroupEvent> nearbyEvents = [];
+  List<GroupEvent> upcomingEvents = [];
   bool isLoading = false;
 
   List<DashBordCompatitbiltyScoreModel> listcompatibilityscore = [
@@ -109,30 +115,22 @@ class HomeScreenVeiwModel extends BaseViewModel {
     initialize();
   }
 
-
   Future<void> initialize() async {
     isLoading = true;
     notifyListeners();
-    //  await getCurrentUser();
-    await fetchMatchedUsers();
-    await fetchNearbyUsers();
+    
+    await Future.wait([
+      fetchMatchedUsers(),
+      fetchNearbyUsers(),
+      fetchNearbyGroups(),
+      fetchMatchedGroups(),
+      fetchNearbyEvents(),
+      fetchUpcomingEvents(),
+    ]);
+
     isLoading = false;
     notifyListeners();
   }
-
-  // Future<void> getCurrentUser() async {
-  //   try {
-  //     final authUser = await Amplify.Auth.getCurrentUser();
-  //     final request = ModelQueries.get(
-  //       User.classType,
-  //       UserModelIdentifier(id: authUser.userId),
-  //     );
-  //     final response = await Amplify.API.query(request: request).response;
-  //     currentUser = response.data;
-  //   } catch (e) {
-  //     safePrint('Error getting current user: $e');
-  //   }
-  // }
 
   Future<void> fetchMatchedUsers() async {
     try {
@@ -168,8 +166,9 @@ class HomeScreenVeiwModel extends BaseViewModel {
 
   Future<void> fetchNearbyUsers() async {
     try {
+      print("hereee2");
       if (userModel?.latitude == null || userModel?.longitude == null) return;
-
+print("hereee3");
       final request = ModelQueries.list(User.classType);
       final response = await Amplify.API.query(request: request).response;
       final users = response.data?.items;
@@ -192,53 +191,164 @@ class HomeScreenVeiwModel extends BaseViewModel {
         );
 
         // Convert meters to kilometers and check if within 1000km
-        return (distance / 1000) <= 1000;
+        return (distance / 100000000) <= 100000000;
       }).toList();
+      print("nearyby users length ${nearbyUsers.length}");
     } catch (e) {
       safePrint('Error fetching nearby users: $e');
     }
   }
- 
+
+  Future<void> fetchNearbyGroups() async {
+    try {
+      if (userModel?.latitude == null || userModel?.longitude == null) return;
+
+      final request = ModelQueries.list(Group.classType);
+      final response = await Amplify.API.query(request: request).response;
+      final groups = response.data?.items.whereType<Group>().toList() ?? [];
+
+      // Filter groups within allowed radius
+      nearbyGroups = groups.where((group) {
+        final distance = calculateDistance(
+          userModel!.latitude!,
+          userModel!.longitude!,
+          group.latitude,
+          group.longitude,
+        );
+        return distance <= group.allowedRadius;
+      }).toList();
+    } catch (e) {
+      safePrint('Error fetching nearby groups: $e');
+    }
+  }
+
+  Future<void> fetchMatchedGroups() async {
+    try {
+      if (userModel?.interests == null && userModel?.hobbies == null) return;
+
+      final request = ModelQueries.list(Group.classType);
+      final response = await Amplify.API.query(request: request).response;
+      final groups = response.data?.items.whereType<Group>().toList() ?? [];
+
+      // Filter groups with matching interests or hobbies
+      matchedGroups = groups.where((group) {
+        final hasMatchingInterests = group.interests?.any(
+          (interest) => userModel?.interests?.contains(interest) ?? false,
+        ) ?? false;
+
+        final hasMatchingHobbies = group.hobbies?.any(
+          (hobby) => userModel?.hobbies?.contains(hobby) ?? false,
+        ) ?? false;
+
+        return hasMatchingInterests || hasMatchingHobbies;
+      }).toList();
+
+      // Sort by number of matching interests and hobbies
+      matchedGroups.sort((a, b) {
+        final aScore = calculateGroupMatchScore(a);
+        final bScore = calculateGroupMatchScore(b);
+        return bScore.compareTo(aScore);
+      });
+    } catch (e) {
+      safePrint('Error fetching matched groups: $e');
+    }
+  }
+
+  Future<void> fetchNearbyEvents() async {
+    try {
+      if (userModel?.latitude == null || userModel?.longitude == null) return;
+
+      final request = ModelQueries.list(GroupEvent.classType);
+      final response = await Amplify.API.query(request: request).response;
+      final events = response.data?.items.whereType<GroupEvent>().toList() ?? [];
+
+      // Filter upcoming events within 50km radius
+      final now = DateTime.now();
+      nearbyEvents = events.where((event) {
+        if (event.startTime.getDateTimeInUtc().isBefore(now)) return false;
+        if (event.latitude == null || event.longitude == null) return false;
+
+        final distance = calculateDistance(
+          userModel!.latitude!,
+          userModel!.longitude!,
+          event.latitude!,
+          event.longitude!,
+        );
+        return distance <= 50; // 50km radius
+      }).toList();
+
+      // Sort by start time
+      nearbyEvents.sort((a, b) => a.startTime.compareTo(b.startTime));
+    } catch (e) {
+      safePrint('Error fetching nearby events: $e');
+    }
+  }
+
+  Future<void> fetchUpcomingEvents() async {
+    try {
+      final request = ModelQueries.list(GroupEvent.classType);
+      final response = await Amplify.API.query(request: request).response;
+      final events = response.data?.items.whereType<GroupEvent>().toList() ?? [];
+
+      // Filter upcoming events and sort by start time
+      final now = DateTime.now();
+      upcomingEvents = events
+          .where((event) => event.startTime.getDateTimeInUtc().isAfter(now))
+          .toList()
+        ..sort((a, b) => a.startTime.compareTo(b.startTime));
+    } catch (e) {
+      safePrint('Error fetching upcoming events: $e');
+    }
+  }
+
+  double calculateGroupMatchScore(Group group) {
+    if (userModel == null) return 0.0;
+
+    int matchingInterests = 0;
+    int matchingHobbies = 0;
+
+    for (final interest in group.interests ?? []) {
+      if (userModel!.interests?.contains(interest) ?? false) {
+        matchingInterests++;
+      }
+    }
+
+    for (final hobby in group.hobbies ?? []) {
+      if (userModel!.hobbies?.contains(hobby) ?? false) {
+        matchingHobbies++;
+      }
+    }
+
+    final totalInterests = (userModel!.interests?.length ?? 0) + 
+                          (group.interests?.length ?? 0);
+    final totalHobbies = (userModel!.hobbies?.length ?? 0) + 
+                        (group.hobbies?.length ?? 0);
+
+    if (totalInterests + totalHobbies == 0) return 0.0;
+
+    return ((matchingInterests + matchingHobbies) / 
+            (totalInterests + totalHobbies)) * 100;
+  }
 
   // Helper method to calculate compatibility score (optional)
-  double calculateCompatibilityScore(User otherUser) {
-    if (userModel == null) return 0.0;
 
-    final matchingInterests = userModel!.interests!
-        .where((interest) => otherUser.interests?.contains(interest) ?? false)
-        .length;
 
-    final matchingHobbies = userModel!.hobbies!
-        .where((hobby) => otherUser.hobbies?.contains(hobby) ?? false)
-        .length;
 
-    final totalInterests = userModel!.interests!.length;
-    final totalHobbies = userModel!.hobbies!.length;
 
-    return ((matchingInterests + matchingHobbies) /
-            (totalInterests + totalHobbies)) *
-        100;
-  }
+
+} 
+double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+  const R = 6371.0; // Earth's radius in kilometers
+  final dLat = _toRadians(lat2 - lat1);
+  final dLon = _toRadians(lon2 - lon1);
+  final a = sin(dLat / 2) * sin(dLat / 2) +
+      cos(_toRadians(lat1)) * cos(_toRadians(lat2)) * sin(dLon / 2) * sin(dLon / 2);
+  final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+  return R * c;
 }
-
-  double calculateCompatibilityScore(User otherUser) {
-    if (userModel == null) return 0.0;
-
-    final matchingInterests = userModel!.interests!
-        .where((interest) => otherUser.interests?.contains(interest) ?? false)
-        .length;
-
-    final matchingHobbies = userModel!.hobbies!
-        .where((hobby) => otherUser.hobbies?.contains(hobby) ?? false)
-        .length;
-
-    final totalInterests = userModel!.interests!.length;
-    final totalHobbies = userModel!.hobbies!.length;
-
-    return ((matchingInterests + matchingHobbies) /
-            (totalInterests + totalHobbies)) *
-        100;
-  }
+double _toRadians(double degree) {
+  return degree * pi / 180;
+}
 
    Future<String> getFileUrl(String fileKey) async {
     final result = await Amplify.Storage.getUrl(
@@ -252,9 +362,7 @@ class HomeScreenVeiwModel extends BaseViewModel {
         ).result;
     return result.url.toString();
   }
-
-
- void showImagePreview(String imageUrl,context) {
+void showImagePreview(String imageUrl,context) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -278,16 +386,22 @@ class HomeScreenVeiwModel extends BaseViewModel {
       ),
     );
   }
-double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-  const R = 6371.0; // Earth's radius in kilometers
-  final dLat = _toRadians(lat2 - lat1);
-  final dLon = _toRadians(lon2 - lon1);
-  final a = sin(dLat / 2) * sin(dLat / 2) +
-      cos(_toRadians(lat1)) * cos(_toRadians(lat2)) * sin(dLon / 2) * sin(dLon / 2);
-  final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-  return R * c;
-}
 
-double _toRadians(double degree) {
-  return degree * pi / 180;
-}
+  double calculateCompatibilityScore(User otherUser) {
+    if (userModel == null) return 0.0;
+
+    final matchingInterests = userModel!.interests!
+        .where((interest) => otherUser.interests?.contains(interest) ?? false)
+        .length;
+
+    final matchingHobbies = userModel!.hobbies!
+        .where((hobby) => otherUser.hobbies?.contains(hobby) ?? false)
+        .length;
+
+    final totalInterests = userModel!.interests!.length;
+    final totalHobbies = userModel!.hobbies!.length;
+
+    return ((matchingInterests + matchingHobbies) /
+            (totalInterests + totalHobbies)) *
+        100;
+  }

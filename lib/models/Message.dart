@@ -30,12 +30,14 @@ class Message extends amplify_core.Model {
   final String id;
   final ChatRoom? _chatRoom;
   final User? _sender;
+  final Group? _group;
   final String? _content;
   final String? _mediaType;
   final String? _mediaKey;
   final List<ReadReceipt>? _readReceipts;
   final amplify_core.TemporalDateTime? _createdAt;
   final amplify_core.TemporalDateTime? _updatedAt;
+  final String? _messageGroupId;
 
   @override
   getInstanceType() => classType;
@@ -76,6 +78,10 @@ class Message extends amplify_core.Model {
     }
   }
   
+  Group? get group {
+    return _group;
+  }
+  
   String? get content {
     return _content;
   }
@@ -100,19 +106,25 @@ class Message extends amplify_core.Model {
     return _updatedAt;
   }
   
-  const Message._internal({required this.id, required chatRoom, required sender, content, mediaType, mediaKey, readReceipts, createdAt, updatedAt}): _chatRoom = chatRoom, _sender = sender, _content = content, _mediaType = mediaType, _mediaKey = mediaKey, _readReceipts = readReceipts, _createdAt = createdAt, _updatedAt = updatedAt;
+  String? get messageGroupId {
+    return _messageGroupId;
+  }
   
-  factory Message({String? id, required ChatRoom chatRoom, required User sender, String? content, String? mediaType, String? mediaKey, List<ReadReceipt>? readReceipts, amplify_core.TemporalDateTime? createdAt, amplify_core.TemporalDateTime? updatedAt}) {
+  const Message._internal({required this.id, required chatRoom, required sender, group, content, mediaType, mediaKey, readReceipts, createdAt, updatedAt, messageGroupId}): _chatRoom = chatRoom, _sender = sender, _group = group, _content = content, _mediaType = mediaType, _mediaKey = mediaKey, _readReceipts = readReceipts, _createdAt = createdAt, _updatedAt = updatedAt, _messageGroupId = messageGroupId;
+  
+  factory Message({String? id, required ChatRoom chatRoom, required User sender, Group? group, String? content, String? mediaType, String? mediaKey, List<ReadReceipt>? readReceipts, amplify_core.TemporalDateTime? createdAt, amplify_core.TemporalDateTime? updatedAt, String? messageGroupId}) {
     return Message._internal(
       id: id == null ? amplify_core.UUID.getUUID() : id,
       chatRoom: chatRoom,
       sender: sender,
+      group: group,
       content: content,
       mediaType: mediaType,
       mediaKey: mediaKey,
       readReceipts: readReceipts != null ? List<ReadReceipt>.unmodifiable(readReceipts) : readReceipts,
       createdAt: createdAt,
-      updatedAt: updatedAt);
+      updatedAt: updatedAt,
+      messageGroupId: messageGroupId);
   }
   
   bool equals(Object other) {
@@ -126,12 +138,14 @@ class Message extends amplify_core.Model {
       id == other.id &&
       _chatRoom == other._chatRoom &&
       _sender == other._sender &&
+      _group == other._group &&
       _content == other._content &&
       _mediaType == other._mediaType &&
       _mediaKey == other._mediaKey &&
       DeepCollectionEquality().equals(_readReceipts, other._readReceipts) &&
       _createdAt == other._createdAt &&
-      _updatedAt == other._updatedAt;
+      _updatedAt == other._updatedAt &&
+      _messageGroupId == other._messageGroupId;
   }
   
   @override
@@ -149,45 +163,52 @@ class Message extends amplify_core.Model {
     buffer.write("mediaType=" + "$_mediaType" + ", ");
     buffer.write("mediaKey=" + "$_mediaKey" + ", ");
     buffer.write("createdAt=" + (_createdAt != null ? _createdAt!.format() : "null") + ", ");
-    buffer.write("updatedAt=" + (_updatedAt != null ? _updatedAt!.format() : "null"));
+    buffer.write("updatedAt=" + (_updatedAt != null ? _updatedAt!.format() : "null") + ", ");
+    buffer.write("messageGroupId=" + "$_messageGroupId");
     buffer.write("}");
     
     return buffer.toString();
   }
   
-  Message copyWith({ChatRoom? chatRoom, User? sender, String? content, String? mediaType, String? mediaKey, List<ReadReceipt>? readReceipts, amplify_core.TemporalDateTime? createdAt, amplify_core.TemporalDateTime? updatedAt}) {
+  Message copyWith({ChatRoom? chatRoom, User? sender, Group? group, String? content, String? mediaType, String? mediaKey, List<ReadReceipt>? readReceipts, amplify_core.TemporalDateTime? createdAt, amplify_core.TemporalDateTime? updatedAt, String? messageGroupId}) {
     return Message._internal(
       id: id,
       chatRoom: chatRoom ?? this.chatRoom,
       sender: sender ?? this.sender,
+      group: group ?? this.group,
       content: content ?? this.content,
       mediaType: mediaType ?? this.mediaType,
       mediaKey: mediaKey ?? this.mediaKey,
       readReceipts: readReceipts ?? this.readReceipts,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt);
+      updatedAt: updatedAt ?? this.updatedAt,
+      messageGroupId: messageGroupId ?? this.messageGroupId);
   }
   
   Message copyWithModelFieldValues({
     ModelFieldValue<ChatRoom>? chatRoom,
     ModelFieldValue<User>? sender,
+    ModelFieldValue<Group?>? group,
     ModelFieldValue<String?>? content,
     ModelFieldValue<String?>? mediaType,
     ModelFieldValue<String?>? mediaKey,
     ModelFieldValue<List<ReadReceipt>?>? readReceipts,
     ModelFieldValue<amplify_core.TemporalDateTime?>? createdAt,
-    ModelFieldValue<amplify_core.TemporalDateTime?>? updatedAt
+    ModelFieldValue<amplify_core.TemporalDateTime?>? updatedAt,
+    ModelFieldValue<String?>? messageGroupId
   }) {
     return Message._internal(
       id: id,
       chatRoom: chatRoom == null ? this.chatRoom : chatRoom.value,
       sender: sender == null ? this.sender : sender.value,
+      group: group == null ? this.group : group.value,
       content: content == null ? this.content : content.value,
       mediaType: mediaType == null ? this.mediaType : mediaType.value,
       mediaKey: mediaKey == null ? this.mediaKey : mediaKey.value,
       readReceipts: readReceipts == null ? this.readReceipts : readReceipts.value,
       createdAt: createdAt == null ? this.createdAt : createdAt.value,
-      updatedAt: updatedAt == null ? this.updatedAt : updatedAt.value
+      updatedAt: updatedAt == null ? this.updatedAt : updatedAt.value,
+      messageGroupId: messageGroupId == null ? this.messageGroupId : messageGroupId.value
     );
   }
   
@@ -202,6 +223,11 @@ class Message extends amplify_core.Model {
         ? json['sender']['serializedData'] != null
           ? User.fromJson(new Map<String, dynamic>.from(json['sender']['serializedData']))
           : User.fromJson(new Map<String, dynamic>.from(json['sender']))
+        : null,
+      _group = json['group'] != null
+        ? json['group']['serializedData'] != null
+          ? Group.fromJson(new Map<String, dynamic>.from(json['group']['serializedData']))
+          : Group.fromJson(new Map<String, dynamic>.from(json['group']))
         : null,
       _content = json['content'],
       _mediaType = json['mediaType'],
@@ -220,22 +246,25 @@ class Message extends amplify_core.Model {
               .toList()
           : null),
       _createdAt = json['createdAt'] != null ? amplify_core.TemporalDateTime.fromString(json['createdAt']) : null,
-      _updatedAt = json['updatedAt'] != null ? amplify_core.TemporalDateTime.fromString(json['updatedAt']) : null;
+      _updatedAt = json['updatedAt'] != null ? amplify_core.TemporalDateTime.fromString(json['updatedAt']) : null,
+      _messageGroupId = json['messageGroupId'];
   
   Map<String, dynamic> toJson() => {
-    'id': id, 'chatRoom': _chatRoom?.toJson(), 'sender': _sender?.toJson(), 'content': _content, 'mediaType': _mediaType, 'mediaKey': _mediaKey, 'readReceipts': _readReceipts?.map((ReadReceipt? e) => e?.toJson()).toList(), 'createdAt': _createdAt?.format(), 'updatedAt': _updatedAt?.format()
+    'id': id, 'chatRoom': _chatRoom?.toJson(), 'sender': _sender?.toJson(), 'group': _group?.toJson(), 'content': _content, 'mediaType': _mediaType, 'mediaKey': _mediaKey, 'readReceipts': _readReceipts?.map((ReadReceipt? e) => e?.toJson()).toList(), 'createdAt': _createdAt?.format(), 'updatedAt': _updatedAt?.format(), 'messageGroupId': _messageGroupId
   };
   
   Map<String, Object?> toMap() => {
     'id': id,
     'chatRoom': _chatRoom,
     'sender': _sender,
+    'group': _group,
     'content': _content,
     'mediaType': _mediaType,
     'mediaKey': _mediaKey,
     'readReceipts': _readReceipts,
     'createdAt': _createdAt,
-    'updatedAt': _updatedAt
+    'updatedAt': _updatedAt,
+    'messageGroupId': _messageGroupId
   };
 
   static final amplify_core.QueryModelIdentifier<MessageModelIdentifier> MODEL_IDENTIFIER = amplify_core.QueryModelIdentifier<MessageModelIdentifier>();
@@ -246,6 +275,9 @@ class Message extends amplify_core.Model {
   static final SENDER = amplify_core.QueryField(
     fieldName: "sender",
     fieldType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.model, ofModelName: 'User'));
+  static final GROUP = amplify_core.QueryField(
+    fieldName: "group",
+    fieldType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.model, ofModelName: 'Group'));
   static final CONTENT = amplify_core.QueryField(fieldName: "content");
   static final MEDIATYPE = amplify_core.QueryField(fieldName: "mediaType");
   static final MEDIAKEY = amplify_core.QueryField(fieldName: "mediaKey");
@@ -254,6 +286,7 @@ class Message extends amplify_core.Model {
     fieldType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.model, ofModelName: 'ReadReceipt'));
   static final CREATEDAT = amplify_core.QueryField(fieldName: "createdAt");
   static final UPDATEDAT = amplify_core.QueryField(fieldName: "updatedAt");
+  static final MESSAGEGROUPID = amplify_core.QueryField(fieldName: "messageGroupId");
   static var schema = amplify_core.Model.defineSchema(define: (amplify_core.ModelSchemaDefinition modelSchemaDefinition) {
     modelSchemaDefinition.name = "Message";
     modelSchemaDefinition.pluralName = "Messages";
@@ -277,6 +310,13 @@ class Message extends amplify_core.Model {
       isRequired: true,
       targetNames: ['senderId'],
       ofModelName: 'User'
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.hasOne(
+      key: Message.GROUP,
+      isRequired: false,
+      ofModelName: 'Group',
+      associatedKey: Group.ID
     ));
     
     modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
@@ -314,6 +354,12 @@ class Message extends amplify_core.Model {
       key: Message.UPDATEDAT,
       isRequired: false,
       ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.dateTime)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: Message.MESSAGEGROUPID,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
     ));
   });
 }

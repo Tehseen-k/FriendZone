@@ -6,17 +6,23 @@ import 'package:code_structure/custom_widgets/custom_upcoming_events.dart';
 import 'package:code_structure/custom_widgets/friend_zone/compatibility_score.dart';
 import 'package:code_structure/custom_widgets/friend_zone/nearby_matches.dart';
 import 'package:code_structure/custom_widgets/friend_zone/schedual_meetups.dart';
+import 'package:code_structure/main.dart';
 import 'package:code_structure/ui/screens/compatibility_screen/compatibility_score_view.dart';
+import 'package:code_structure/ui/screens/event/event_info_screen.dart';
+import 'package:code_structure/ui/screens/group/group_info_screen.dart';
 import 'package:code_structure/ui/screens/home_screen/home_veiw_model.dart';
 import 'package:code_structure/ui/screens/nearby_matches/nearby_view.dart';
 import 'package:code_structure/ui/screens/shedule_events/shedule_events_screen.dart';
 import 'package:code_structure/ui/screens/shedule_meetups/shedule_screen.dart';
 import 'package:code_structure/ui/screens/up_coming/up_coming_screen.dart';
+import 'package:code_structure/ui/screens/user_profile_screen/user_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:provider/provider.dart';
+import 'package:code_structure/ui/widgets/group_card.dart';
+import 'package:code_structure/ui/widgets/event_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -51,261 +57,347 @@ class _HomeScreenState extends State<HomeScreen> {
             ///
             /// Start Body
             ///
-            body: SingleChildScrollView(
-              child: Column(
-                spacing: 15,
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 15,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10),
-                    child: Text(
-                      "Your Dashboard",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10),
-                    child: Text(
-                      "Compatibility Scores",
-                      style: GoogleFonts.nunito(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 17,
-                          color: Colors.black),
-                    ),
-                  ),
-
-                  ///
-                  ///    Compability Score
-                  ///
-
-                  _compabilityScore(model),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Nearby Matches",
-                          style: GoogleFonts.nunito(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 17,
-                              color: Colors.black),
-                        ),
-                        TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => NearbyScreen()));
-                            },
-                            child: Text(
-                              "See All",
-                              style: TextStyle(
-                                  color: Color(0xfff123cc9),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700),
-                            ))
-                      ],
-                    ),
-                  ),
-                  _nearByMatches(model, screenWidth),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Upcoming Activities",
-                          style: style16B.copyWith(color: blackColor),
-                        ),
-                        TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => UpComingScreen()));
-                            },
-                            child: Text(
-                              "See All",
-                              style: TextStyle(
-                                  color: Color(0xfff123cc9),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700),
-                            ))
-                      ],
-                    ),
-                  ),
-
-                  ///
-                  /// Upcoming Activities
-                  ///
-                  _upComingEvents(model, screenheight),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Schedual Meetups",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w700),
-                        ),
-                        TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => SheduleScreen()));
-                            },
-                            child: Text(
-                              "See All",
-                              style: TextStyle(
-                                  color: Color(0xfff123cc9),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700),
-                            ))
-                      ],
-                    ),
-                  ),
-
-                  ///
-                  /// Schedule Meeting
-                  ///
-                  _sheduleMeeting(model, screenheight),
-                  SizedBox(height: 15),
-                  Row(
+            body: SafeArea(
+              child: RefreshIndicator(
+                onRefresh: () => model.initialize(),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        ScheduleEventsScreen()));
-                          },
-                          child: Container(
-                            width: 200,
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 15, vertical: 10),
-                            decoration: BoxDecoration(
-                                color: _isSelectedSchedaul
-                                    ? buttonColor
-                                    : Color(0x00000fff),
-                                borderRadius: BorderRadius.circular(40)),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Icon(
-                                  Icons.calendar_month_outlined,
-                                  size: 30,
-                                  color: Colors.white,
-                                ),
-                                Text(
-                                  "Schedual Events",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 17,
-                                      color: Colors.white),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
+                     // _appBar(),
+                      
+                      // Matched Groups Section
+                      _sectionHeader(
+                        "Matched Groups",
+                        "Groups that match your interests",
+                        onSeeAll: () {
+                          // Navigate to all matched groups
+                        },
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: GestureDetector(
-                          onTap: () {},
-                          child: Container(
-                            width: 170,
-                            padding: EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                                color: buttonColor,
-                                borderRadius: BorderRadius.circular(40)),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Icon(
-                                  Icons.add,
-                                  size: 35,
-                                  color: Colors.white,
-                                ),
-                                Text(
-                                  "New Group",
-                                  style: GoogleFonts.nunito(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 18,
-                                      color: Colors.white),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
+                      _buildMatchedGroups(model),
+
+                      // Nearby Groups Section
+                      _sectionHeader(
+                        "Nearby Groups",
+                        "Groups in your area",
+                        onSeeAll: () {
+                          // Navigate to all nearby groups
+                        },
                       ),
+                      _buildNearbyGroups(model),
+
+                      // Upcoming Events Section
+                      _sectionHeader(
+                        "Upcoming Events",
+                        "Events happening soon",
+                        onSeeAll: () {
+                          // Navigate to all events
+                        },
+                      ),
+                      _buildUpcomingEvents(model),
+
+                      // Nearby Events Section
+                      _sectionHeader(
+                        "Events Near You",
+                        "Events in your area",
+                        onSeeAll: () {
+                          // Navigate to all nearby events
+                        },
+                      ),
+                      _buildNearbyEvents(model),
+
+                      SizedBox(height: 20.h),
                     ],
                   ),
-
-                  SizedBox(
-                    height: 15,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: GestureDetector(
-                      onTap: () {
-                        () {
-                          // onClick();
-                        };
-                      },
-                      child: Container(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Container(
-                              height: screenheight * 0.07,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                  border: Border.all(
-                                      width: 1,
-                                      color: borderColor.withOpacity(0.20)),
-                                  color: _isSelectedSchedaul
-                                      ? transparentColor
-                                      : Color(0x00000fff),
-                                  borderRadius: BorderRadius.circular(40)),
-                              child: Center(
-                                child: Text(
-                                  "Interact ith AI Assitant",
-                                  style: GoogleFonts.nunito(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 17,
-                                      color: Colors.black),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 15,
-                  )
-                ],
+                ),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _sectionHeader(String title, String subtitle, {VoidCallback? onSeeAll}) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+          if (onSeeAll != null)
+            TextButton(
+              onPressed: onSeeAll,
+              child: Text(
+                "See All",
+                style: TextStyle(
+                  color: primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMatchedGroups(HomeScreenVeiwModel model) {
+    if (model.isLoading) {
+      return _buildLoadingList();
+    }
+
+    if (model.matchedGroups.isEmpty) {
+      return _buildEmptyState(
+        "No matched groups found",
+        "Try updating your interests to find more groups",
+        Icons.group_off,
+      );
+    }
+
+    return SizedBox(
+      height: 280.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        itemCount: model.matchedGroups.length,
+        itemBuilder: (context, index) {
+          final group = model.matchedGroups[index];
+          return Container(
+            width: 280.w,
+            padding: EdgeInsets.only(right: 16.w),
+            child: GroupCard(
+              group: group,
+              matchScore: model.calculateGroupMatchScore(group),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GroupInfoScreen(
+                      group: group,
+                      currentUser: userModel!,
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildNearbyGroups(HomeScreenVeiwModel model) {
+    if (model.isLoading) {
+      return _buildLoadingList();
+    }
+
+    if (model.nearbyGroups.isEmpty) {
+      return _buildEmptyState(
+        "No nearby groups found",
+        "Try expanding your search radius",
+        Icons.location_off,
+      );
+    }
+
+    return SizedBox(
+      height: 280.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        itemCount: model.nearbyGroups.length,
+        itemBuilder: (context, index) {
+          final group = model.nearbyGroups[index];
+          return Container(
+            width: 280.w,
+            padding: EdgeInsets.only(right: 16.w),
+            child: GroupCard(
+              group: group,
+              matchScore: model.calculateGroupMatchScore(group),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GroupInfoScreen(
+                      group: group,
+                      currentUser: userModel!,
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildUpcomingEvents(HomeScreenVeiwModel model) {
+    if (model.isLoading) {
+      return _buildLoadingList();
+    }
+
+    if (model.upcomingEvents.isEmpty) {
+      return _buildEmptyState(
+        "No upcoming events",
+        "Check back later for new events",
+        Icons.event_busy,
+      );
+    }
+
+    return SizedBox(
+      height: 280.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        itemCount: model.upcomingEvents.length,
+        itemBuilder: (context, index) {
+          final event = model.upcomingEvents[index];
+          return Container(
+            width: 280.w,
+            padding: EdgeInsets.only(right: 16.w),
+            child: EventCard(
+              event: event,
+              isUpcoming: true,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EventInfoScreen(
+                      event: event,
+                      currentUser: userModel!,
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildNearbyEvents(HomeScreenVeiwModel model) {
+    if (model.isLoading) {
+      return _buildLoadingList();
+    }
+
+    if (model.nearbyEvents.isEmpty) {
+      return _buildEmptyState(
+        "No events nearby",
+        "Try expanding your search radius",
+        Icons.location_off,
+      );
+    }
+
+    return SizedBox(
+      height: 280.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        itemCount: model.nearbyEvents.length,
+        itemBuilder: (context, index) {
+          final event = model.nearbyEvents[index];
+          return Container(
+            width: 280.w,
+            padding: EdgeInsets.only(right: 16.w),
+            child: EventCard(
+              event: event,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EventInfoScreen(
+                      event: event,
+                      currentUser: userModel!,
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildLoadingList() {
+    return SizedBox(
+      height: 280.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        itemCount: 3,
+        itemBuilder: (context, index) {
+          return Container(
+            width: 280.w,
+            padding: EdgeInsets.only(right: 16.w),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String title, String message, IconData icon) {
+    return Container(
+      height: 280.h,
+      margin: EdgeInsets.symmetric(horizontal: 16.w),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(16.r),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 48.sp,
+            color: Colors.grey[400],
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -356,6 +448,7 @@ _compabilityScore(HomeScreenVeiwModel model) {
             itemBuilder: (BuildContext context, int index) {
               return GestureDetector(
                   onTap: () {
+                    
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -406,22 +499,24 @@ _compabilityScore(HomeScreenVeiwModel model) {
 }
 
 _nearByMatches(HomeScreenVeiwModel model, double screenWidth) {
+  print("neaar by user heree ${model.nearbyUsers}");
   return model.nearbyUsers.isNotEmpty
       ? SizedBox(
           height: 290,
           width: screenWidth * 0.9,
           child: ListView.builder(
-            itemCount: model.listNearbyMatches.length,
+            itemCount: model.nearbyUsers.length,
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
             itemBuilder: (BuildContext context, int index) {
               return GestureDetector(
                 onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => NearbyScreen()));
+                  final compatibilityScore = calculateCompatibilityScore(model.nearbyUsers[index]!);
+                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => UserProfileScreen(matchedUser:model.nearbyUsers[index]!,compatibilityScore: compatibilityScore,)));
+                  
                 },
                 child: CustomNearbyMatchesWidget(
-                    Object_nearbyMatches: model.listNearbyMatches[index]),
+                    Object_nearbyMatches: model.nearbyUsers[index]!),
               );
             },
           ),

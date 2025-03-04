@@ -22,21 +22,29 @@
 import 'package:amplify_core/amplify_core.dart' as amplify_core;
 import 'ChatParticipant.dart';
 import 'ChatRoom.dart';
+import 'EventAttendee.dart';
+import 'Group.dart';
+import 'GroupEvent.dart';
+import 'GroupMember.dart';
 import 'Message.dart';
 import 'ReadReceipt.dart';
 import 'User.dart';
 
 export 'ChatParticipant.dart';
 export 'ChatRoom.dart';
+export 'EventAttendee.dart';
+export 'Group.dart';
+export 'GroupEvent.dart';
+export 'GroupMember.dart';
 export 'Message.dart';
 export 'ReadReceipt.dart';
 export 'User.dart';
 
 class ModelProvider implements amplify_core.ModelProviderInterface {
   @override
-  String version = "a32dbd6d7e22fab74c2c2fdb5b11703d";
+  String version = "bcd33c3b25623076950312537bab9c9e";
   @override
-  List<amplify_core.ModelSchema> modelSchemas = [ChatParticipant.schema, ChatRoom.schema, Message.schema, ReadReceipt.schema, User.schema];
+  List<amplify_core.ModelSchema> modelSchemas = [ChatParticipant.schema, ChatRoom.schema, EventAttendee.schema, Group.schema, GroupEvent.schema, GroupMember.schema, Message.schema, ReadReceipt.schema, User.schema];
   @override
   List<amplify_core.ModelSchema> customTypeSchemas = [];
   static final ModelProvider _instance = ModelProvider();
@@ -49,6 +57,14 @@ class ModelProvider implements amplify_core.ModelProviderInterface {
         return ChatParticipant.classType;
       case "ChatRoom":
         return ChatRoom.classType;
+      case "EventAttendee":
+        return EventAttendee.classType;
+      case "Group":
+        return Group.classType;
+      case "GroupEvent":
+        return GroupEvent.classType;
+      case "GroupMember":
+        return GroupMember.classType;
       case "Message":
         return Message.classType;
       case "ReadReceipt":

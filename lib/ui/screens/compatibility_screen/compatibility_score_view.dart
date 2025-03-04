@@ -479,6 +479,7 @@ class _CompatibilityCardState extends State<CompatibilityCard> {
                   child: ElevatedButton(
                     onPressed: () {
                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => UserProfileScreen(matchedUser: widget.matchedUser,compatibilityScore: compatibilityScore,)));
+                  
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,

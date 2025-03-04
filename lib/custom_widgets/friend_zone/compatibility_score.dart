@@ -67,6 +67,7 @@ class CustomCompatibilityScorewidget extends StatelessWidget {
                   ),
                   child: Icon(Icons.person),
                 ),
+        
           Padding(
             padding: const EdgeInsets.only(left: 5.0),
             child: Text(
