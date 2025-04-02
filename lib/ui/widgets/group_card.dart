@@ -1,3 +1,4 @@
+import 'package:code_structure/ui/screens/home_screen/home_veiw_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:code_structure/models/Group.dart';
@@ -17,6 +18,7 @@ class GroupCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("group interest ${group.interests?.length}");
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -28,23 +30,57 @@ class GroupCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Group Image
             ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(16.r),
+              ),
               child: group.groupImageKey != null
-                  ? Image.network(
-                      group.groupImageKey!,
-                      height: 120.h,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    )
+                  ? FutureBuilder(
+                      future: getFileUrl(group.groupImageKey!),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return Image.network(
+                            snapshot.data!,
+                            height: 120.h,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          );
+                        }
+                        return Center(
+                          child: CircularProgressIndicator(
+                            color: primaryColor,
+                          ),
+                        );
+                      })
                   : Container(
                       height: 120.h,
+                      alignment: Alignment.center,
                       color: primaryColor.withOpacity(0.1),
-                      child: Icon(Icons.group, size: 48.sp, color: primaryColor),
+                      child: Icon(
+                        Icons.person,
+                        size: 48.sp,
+                        color: primaryColor,
+                      ),
                     ),
             ),
-            
+
+            // Group Image
+            // ClipRRect(
+            //   borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+            //   child: group.groupImageKey != null
+            //       ? Image.network(
+            //           group.groupImageKey!,
+            //           height: 120.h,
+            //           width: double.infinity,
+            //           fit: BoxFit.cover,
+            //         )
+            //       : Container(
+            //           height: 120.h,
+            //           color: primaryColor.withOpacity(0.1),
+            //           child: Icon(Icons.group, size: 48.sp, color: primaryColor),
+            //         ),
+            // ),
+
             Padding(
               padding: EdgeInsets.all(12.w),
               child: Column(
@@ -87,7 +123,7 @@ class GroupCard extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 4.h),
-                  
+
                   // Location
                   Row(
                     children: [
@@ -107,7 +143,7 @@ class GroupCard extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 8.h),
-                  
+
                   // Interests and Hobbies
                   if (group.interests?.isNotEmpty ?? false) ...[
                     Wrap(
@@ -142,4 +178,4 @@ class GroupCard extends StatelessWidget {
       ),
     );
   }
-} 
+}

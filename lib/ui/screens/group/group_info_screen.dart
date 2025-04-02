@@ -1,6 +1,8 @@
 import 'package:amplify_api/amplify_api.dart';
+import 'package:code_structure/models/ChatParticipant.dart';
 import 'package:code_structure/ui/screens/chats_list/chats_list_screen.dart';
 import 'package:code_structure/ui/screens/group/create_event_dialog.dart';
+import 'package:code_structure/ui/screens/group/edit_group_screen.dart';
 import 'package:code_structure/ui/screens/group/manage_members_dialog.dart';
 import 'package:code_structure/ui/screens/home_screen/home_veiw_model.dart';
 import 'package:flutter/material.dart';
@@ -60,13 +62,19 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   }
 
   void _checkMembershipStatus() {
-    final currentUserMember = members.firstWhere(
-      (member) => member.user.id == widget.currentUser.id && member.status == 'active',
+    try{
+         final currentUserMember = members.firstWhere(
+      (member) =>
+          member.user.id == widget.currentUser.id && member.status == 'active',
       orElse: () => null as GroupMember,
     );
-    
+
     isAdmin = widget.group.admin.id == widget.currentUser.id;
     isMember = currentUserMember != null;
+    }catch(e){
+      print("error occured in _checkMembershipStatus $e");
+    }
+ 
   }
 
   Future<void> _loadMembers() async {
@@ -77,9 +85,10 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       );
       final response = await Amplify.API.query(request: request).response;
       members = response.data?.items
-          .whereType<GroupMember>()
-          .where((member) => member.status == 'active')
-          .toList() ?? [];
+              .whereType<GroupMember>()
+              .where((member) => member.status == 'active')
+              .toList() ??
+          [];
     } catch (e) {
       print('Error loading members: $e');
     }
@@ -103,8 +112,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     try {
       final request = ModelQueries.list(
         ChatRoom.classType,
-        where: ChatRoom.NAME.eq(widget.group.name)
-          .and(ChatRoom.ISGROUPCHAT.eq(true)),
+        where: ChatRoom.NAME
+            .eq(widget.group.name)
+            .and(ChatRoom.ISGROUPCHAT.eq(true)),
       );
       final response = await Amplify.API.query(request: request).response;
       groupChat = response.data?.items.firstOrNull as ChatRoom?;
@@ -117,6 +127,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     try {
       setState(() => isLoading = true);
 
+      // First create the group member
       final member = GroupMember(
         user: widget.currentUser,
         group: widget.group,
@@ -127,6 +138,48 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 
       await Amplify.API.mutate(
         request: ModelMutations.create(member),
+      ).response;
+
+      // Find or create the group chat room
+      final chatRoomRequest = ModelQueries.list(
+        ChatRoom.classType,
+        where: ChatRoom.NAME.eq(widget.group.name).and(ChatRoom.ISGROUPCHAT.eq(true)),
+      );
+
+      final chatRoomResponse = await Amplify.API.query(request: chatRoomRequest).response;
+      final existingRooms = chatRoomResponse.data?.items.whereType<ChatRoom>().toList() ?? [];
+      
+      ChatRoom chatRoom;
+      if (existingRooms.isNotEmpty) {
+        chatRoom = existingRooms.first;
+      } else {
+        // Create new chat room if none exists
+        final newChatRoom = ChatRoom(
+          name: widget.group.name,
+          isGroupChat: true,
+          admin: widget.group.admin,
+          lastMessage: '',
+          lastMessageTimestamp: TemporalDateTime.now(),
+          createdAt: TemporalDateTime.now(),
+        );
+
+        final createResponse = await Amplify.API.mutate(
+          request: ModelMutations.create(newChatRoom),
+        ).response;
+        
+        chatRoom = createResponse.data!;
+      }
+
+      // Add user as chat participant
+      final chatParticipant = ChatParticipant(
+        user: widget.currentUser,
+        chatRoom: chatRoom,
+        role: 'member',
+        lastReadAt: TemporalDateTime.now(),
+      );
+
+      await Amplify.API.mutate(
+        request: ModelMutations.create(chatParticipant),
       ).response;
 
       await _loadGroupData();
@@ -147,6 +200,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     try {
       setState(() => isLoading = true);
 
+      // Remove group membership
       final member = members.firstWhere(
         (m) => m.user.id == widget.currentUser.id,
       );
@@ -154,6 +208,25 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       await Amplify.API.mutate(
         request: ModelMutations.delete(member),
       ).response;
+
+      // Remove from chat room if exists
+      if (groupChat != null) {
+        final participantRequest = ModelQueries.list(
+          ChatParticipant.classType,
+          where: ChatParticipant.USER.contains(widget.currentUser.id)
+            .and(ChatParticipant.CHATROOM.contains(groupChat!.id)),
+        );
+
+        final participantResponse = await Amplify.API.query(request: participantRequest).response;
+        final participants = participantResponse.data?.items ?? [];
+
+        for (final participant in participants) {
+          if (participant == null) continue;
+          await Amplify.API.mutate(
+            request: ModelMutations.delete(participant),
+          ).response;
+        }
+      }
 
       await _loadGroupData();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -191,11 +264,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                 ),
               ],
             ),
-      floatingActionButton: isMember
+      floatingActionButton: isAdmin
           ? FloatingActionButton.extended(
               onPressed: () => _showCreateEventDialog(),
-              icon: Icon(Icons.add),
-              label: Text('Create Event'),
+              icon: Icon(Icons.add,color: Colors.white,),
+              label: Text('Create Event',style: TextStyle(color: Colors.white),),
               backgroundColor: primaryColor,
             )
           : null,
@@ -208,10 +281,29 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
         background: widget.group.groupImageKey != null
-            ? Image.network(
-                widget.group.groupImageKey!,
-                fit: BoxFit.cover,
+            ? FutureBuilder<String>(
+                future: getFileUrl(widget.group.groupImageKey!),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return GestureDetector(
+                        onTap: () => _showMediaPreview(snapshot.data!),
+                        child: Image.network(
+                          snapshot.data!,
+                          fit: BoxFit.cover,
+                        ));
+                  }
+                  return Container(
+                    width: 120.w,
+                    margin: EdgeInsets.only(right: 8.w),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.r),
+                      color: Colors.grey[200],
+                    ),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                },
               )
+          
             : Container(
                 color: primaryColor.withOpacity(0.1),
                 child: Icon(
@@ -230,7 +322,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => ChatsListScreen(
-                 //   chatRoom: groupChat!,
+                    //   chatRoom: groupChat!,
                     currentUser: widget.currentUser,
                   ),
                 ),
@@ -291,7 +383,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.group.interests != null && widget.group.interests!.isNotEmpty)
+        if (widget.group.interests != null &&
+            widget.group.interests!.isNotEmpty)
           _buildChipSection('Interests', widget.group.interests!),
         SizedBox(height: 16.h),
         if (widget.group.hobbies != null && widget.group.hobbies!.isNotEmpty)
@@ -315,10 +408,12 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         Wrap(
           spacing: 8.w,
           runSpacing: 8.h,
-          children: items.map((item) => Chip(
-            label: Text(item),
-            backgroundColor: primaryColor.withOpacity(0.1),
-          )).toList(),
+          children: items
+              .map((item) => Chip(
+                    label: Text(item),
+                    backgroundColor: primaryColor.withOpacity(0.1),
+                  ))
+              .toList(),
         ),
       ],
     );
@@ -339,7 +434,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         ListTile(
           leading: Icon(Icons.location_on, color: primaryColor),
           title: Text(widget.group.locationName ?? 'Location not specified'),
-          subtitle: Text('Allowed radius: ${widget.group.allowedRadius.round()} km'),
+          subtitle:
+              Text('Allowed radius: ${widget.group.allowedRadius.round()} km'),
         ),
       ],
     );
@@ -405,7 +501,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   }
 
   Widget _buildMembersList() {
-    return Column(
+    return Padding(padding: EdgeInsets.all(10),child:Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
@@ -426,39 +522,63 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               ),
           ],
         ),
+      
         ListView.builder(
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
           itemCount: members.length,
           itemBuilder: (context, index) {
             final member = members[index];
-            return ListTile(
-              leading: CircleAvatar(
-                backgroundImage: member.user.profileImageKey != null
-                    ? NetworkImage(member.user.profileImageKey!)
-                    : null,
-                child: member.user.profileImageKey == null
-                    ? Text(member.user.username[0].toUpperCase())
-                    : null,
-              ),
-              title: Text(member.user.username),
-              subtitle: Text(member.role),
-              trailing: widget.group.admin.id == widget.currentUser.id &&
-                      member.user.id != widget.currentUser.id
-                  ? IconButton(
-                      icon: Icon(Icons.remove_circle_outline),
-                      onPressed: () => _removeMember(member),
-                    )
-                  : null,
-            );
+            return member.user.profileImageKey != null
+                ? FutureBuilder<String>(
+                    future: getFileUrl(member.user.profileImageKey??''),
+                    builder: (context, snapshot) {
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: snapshot.hasData
+                              ? NetworkImage(snapshot.data!)
+                              : null,
+                          child: snapshot.hasData
+                              ? null
+                              : Text(member.user.username[0].toUpperCase()),
+                        ),
+                        title: Text(member.user.username),
+                        subtitle: Text(member.role),
+                        trailing: widget.group.admin.id == widget.currentUser.id &&
+                                member.user.id != widget.currentUser.id
+                            ? IconButton(
+                                icon: Icon(Icons.remove_circle_outline),
+                                onPressed: () => _removeMember(member),
+                              )
+                            : null,
+                      );
+                    },
+                  )
+                : ListTile(
+                    leading: CircleAvatar(
+                      child: Text(member.user.username[0].toUpperCase()),
+                    ),
+                    title: Text(member.user.username),
+                    subtitle: Text(member.role),
+                    trailing: widget.group.admin.id == widget.currentUser.id &&
+                            member.user.id != widget.currentUser.id
+                        ? IconButton(
+                            icon: Icon(Icons.remove_circle_outline),
+                            onPressed: () => _removeMember(member),
+                          )
+                        : null,
+                  );
           },
         ),
+     
       ],
-    );
+    )
+   ,);
+    
   }
 
   Widget _buildEventsList() {
-    return Column(
+    return Padding(padding: EdgeInsets.all(10),child:    Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
@@ -471,9 +591,10 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            ElevatedButton.icon(
+            if(isMember)
+             ElevatedButton.icon(
               onPressed: _showCreateEventDialog,
-              icon: Icon(Icons.add, size: 20.sp),
+              icon: Icon(Icons.add, size: 20.sp,color: Colors.white,),
               label: Text('Create Event'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
@@ -484,6 +605,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                 ),
               ),
             ),
+
+            
+           
           ],
         ),
         SizedBox(height: 16.h),
@@ -526,7 +650,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
             },
           ),
       ],
-    );
+    )
+ ,);
+    
+
+
   }
 
   Widget _buildEventCard(GroupEvent event) {
@@ -607,7 +735,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   Widget _getEventTypeIcon(String eventType) {
     IconData iconData;
     Color iconColor;
-    
+
     switch (eventType.toLowerCase()) {
       case 'meetup':
         iconData = Icons.people;
@@ -643,10 +771,10 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   String _formatEventDateTime(TemporalDateTime start, TemporalDateTime end) {
     final startDate = start.getDateTimeInUtc();
     final endDate = end.getDateTimeInUtc();
-    
+
     final dateFormat = DateFormat('MMM d');
     final timeFormat = DateFormat('h:mm a');
-    
+
     if (startDate.day == endDate.day) {
       return '${dateFormat.format(startDate)} · ${timeFormat.format(startDate)} - ${timeFormat.format(endDate)}';
     } else {
@@ -690,9 +818,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         joinedAt: TemporalDateTime(DateTime.now()),
       );
 
-      await Amplify.API.mutate(
-        request: ModelMutations.create(member),
-      ).response;
+      await Amplify.API
+          .mutate(
+            request: ModelMutations.create(member),
+          )
+          .response;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${user.username} added to group')),
@@ -712,7 +842,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         context: context,
         builder: (context) => AlertDialog(
           title: Text('Remove Member'),
-          content: Text('Are you sure you want to remove ${member.user.username} from the group?'),
+          content: Text(
+              'Are you sure you want to remove ${member.user.username} from the group?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -728,9 +859,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 
       if (confirm != true) return;
 
-      await Amplify.API.mutate(
-        request: ModelMutations.delete(member),
-      ).response;
+      await Amplify.API
+          .mutate(
+            request: ModelMutations.delete(member),
+          )
+          .response;
 
       setState(() {
         members.remove(member);
@@ -753,7 +886,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
       builder: (context) => CreateEventDialog(
         group: widget.group,
         currentUser: widget.currentUser,
-        onCreateEvent: (title, description, startTime, endTime, eventType, location) async {
+        onCreateEvent: (title, description, startTime, endTime, eventType,
+            location) async {
           try {
             final event = GroupEvent(
               title: title,
@@ -766,9 +900,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               creator: widget.currentUser,
             );
 
-            await Amplify.API.mutate(
-              request: ModelMutations.create(event),
-            ).response;
+            await Amplify.API
+                .mutate(
+                  request: ModelMutations.create(event),
+                )
+                .response;
 
             // Refresh events list
             await _loadEvents();
@@ -835,7 +971,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // Event title
                   Text(
                     event.title,
@@ -860,7 +996,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                   _buildEventDetailItem(
                     Icons.access_time,
                     'Time',
-                    '${_formatEventDateTime(event.startTime,event.endTime)} - ${_formatEventDateTime(event.endTime,event.endTime)}',
+                    '${_formatEventDateTime(event.startTime, event.endTime)} - ${_formatEventDateTime(event.endTime, event.endTime)}',
                   ),
                   _buildEventDetailItem(
                     Icons.category,
@@ -869,7 +1005,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                   ),
 
                   // Event media
-                  if (event.mediaKeys != null && event.mediaKeys!.isNotEmpty) ...[
+                  if (event.mediaKeys != null &&
+                      event.mediaKeys!.isNotEmpty) ...[
                     SizedBox(height: 16.h),
                     Text(
                       'Event Media',
@@ -890,7 +1027,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                             builder: (context, snapshot) {
                               if (snapshot.hasData) {
                                 return GestureDetector(
-                                  onTap: () => _showMediaPreview(snapshot.data!),
+                                  onTap: () =>
+                                      _showMediaPreview(snapshot.data!),
                                   child: Container(
                                     width: 120.w,
                                     margin: EdgeInsets.only(right: 8.w),
@@ -911,7 +1049,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                   borderRadius: BorderRadius.circular(8.r),
                                   color: Colors.grey[200],
                                 ),
-                                child: Center(child: CircularProgressIndicator()),
+                                child:
+                                    Center(child: CircularProgressIndicator()),
                               );
                             },
                           );
@@ -965,7 +1104,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   Future<void> _editEvent(GroupEvent event) async {
     // Only allow editing if the user is the creator
     if (event.creator.id != widget.currentUser.id) return;
-    
+
     // Implement edit event functionality
     // You can reuse the CreateEventDialog with pre-filled data
   }
@@ -1017,7 +1156,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         child: ElevatedButton.icon(
           onPressed: _joinGroup,
-          icon: Icon(Icons.group_add),
+          icon: Icon(Icons.group_add,color: Colors.white,),
           label: Text('Join Group'),
           style: ElevatedButton.styleFrom(
             backgroundColor: primaryColor,
@@ -1044,13 +1183,13 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => ChatsListScreen(
-                     //   chatRoom: groupChat!,
+                        //   chatRoom: groupChat!,
                         currentUser: widget.currentUser,
                       ),
                     ),
                   );
                 },
-                icon: Icon(Icons.chat),
+                icon: Icon(Icons.chat,color: Colors.white),
                 label: Text('Group Chat'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryColor,
@@ -1120,13 +1259,23 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
     // );
   }
 
-  void _showGroupSettings() {
-    // Implement group settings dialog
-    // This could include:
-    // - Edit group details
-    // - Update group image
-    // - Manage privacy settings
-    // - Delete group option
+  void _showGroupSettings()async {
+   if (!isAdmin) return;
+    
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditGroupScreen(
+          group: widget.group,
+          currentUser: widget.currentUser,
+        ),
+      ),
+    );
+
+    if (result == true) {
+      // Refresh group data if changes were made
+      await _loadGroupData();
+    }
   }
 }
 
@@ -1143,4 +1292,4 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 //     print('Error getting file URL: $e');
 //     throw e;
 //   }
-// } 
+// }

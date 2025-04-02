@@ -3,6 +3,7 @@
 import 'package:code_structure/core/constants/colors.dart';
 import 'package:code_structure/core/constants/strings.dart';
 import 'package:code_structure/core/constants/text_style.dart';
+import 'package:code_structure/main.dart';
 import 'package:code_structure/ui/screens/auth/login/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -183,7 +184,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => LoginScreen(),
+                        builder: (context) => AuthScreen(),
                       ),
                     );
                   },
@@ -218,7 +219,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               onTap: () {
                 if (_currentPage == 5) {
                   Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => LoginScreen()));
+                      MaterialPageRoute(builder: (context) => AuthScreen()));
                 } else {
                   _controller.nextPage(
                     duration: Duration(milliseconds: 300),

@@ -6,6 +6,8 @@ import 'package:code_structure/core/constants/colors.dart';
 import 'package:code_structure/core/constants/strings.dart';
 import 'package:code_structure/core/constants/text_style.dart';
 import 'package:code_structure/custom_widgets/buttons/custom_button.dart';
+import 'package:code_structure/main.dart';
+import 'package:code_structure/ui/screens/auth/setup_profile/locationSlectionWidget.dart';
 import 'package:code_structure/ui/screens/auth/setup_profile/uplaod_profile_video.dart';
 import 'package:code_structure/ui/screens/root_screen/root_screen.dart';
 import 'package:file_picker/file_picker.dart';
@@ -224,7 +226,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
     try {
       final user = await Amplify.Auth.getCurrentUser();
       final userId = user.userId;
-      final userModel = User(
+      final userModell = User(
         id: userId,
         username: _name,
         email: _email,
@@ -241,7 +243,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
         latitude: _latitude,
         longitude: _longitude,
       );
-      final request = ModelMutations.create(userModel,
+      final request = ModelMutations.create(userModell,
           authorizationMode: APIAuthorizationType.apiKey);
       final response = await Amplify.API.mutate(request: request).response;
 
@@ -253,6 +255,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
       } else {
         safePrint('Mutation result: ${createdUser.createdAt}');
         _showToast('Profile created successfully!', isError: false);
+        userModel=createdUser;
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => RootScreen()));
       }
@@ -293,6 +296,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
       if (response.data == null) {
         _showToast('Error updating profile', isError: true);
       } else {
+        userModel=response.data;
         _showToast('Profile updated successfully!', isError: false);
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => RootScreen()));
@@ -330,6 +334,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
       final data = response.data;
       print("user here  ${response.data}");
       _userModel = data;
+      userModel=_userModel;
       if (data == null) {
         safePrint('errors: ${response.errors}');
       } else {
@@ -1216,38 +1221,18 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
     );
   }
 
-  Widget _buildLocationSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Location", style: style16B.copyWith(color: blackColor)),
-        SizedBox(height: 10),
-        TextFormField(
-          readOnly: true,
-          controller: TextEditingController(text: _currentLocation),
-          decoration: authFieldDecoration.copyWith(
-            prefixIcon: Icon(Icons.location_on, color: greyColor),
-            hintText: "Use My Current Location",
-            suffixIcon: _isLoadingLocation
-                ? Container(
-                    margin: EdgeInsets.all(12),
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-                    ),
-                  )
-                : IconButton(
-                    icon: Icon(Icons.my_location),
-                    onPressed: _getCurrentLocation,
-                  ),
-          ),
-        ),
-      ],
-    );
-  }
-
+Widget _buildLocationSection() {
+  return LocationSelectionWidget(
+    initialLocation: _currentLocation,
+    onLocationSelected: (lat, lon, address) {
+      setState(() {
+        _latitude = lat;
+        _longitude = lon;
+        _currentLocation = address;
+      });
+    },
+  );
+}
   Widget _buildProfileImageSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

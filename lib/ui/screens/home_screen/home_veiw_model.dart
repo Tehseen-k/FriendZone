@@ -207,16 +207,23 @@ print("hereee3");
       final response = await Amplify.API.query(request: request).response;
       final groups = response.data?.items.whereType<Group>().toList() ?? [];
 
-      // Filter groups within allowed radius
+      // Filter groups using Geolocator distance calculation
       nearbyGroups = groups.where((group) {
-        final distance = calculateDistance(
+        if (group.latitude == null || group.longitude == null) return false;
+
+        final distance = Geolocator.distanceBetween(
           userModel!.latitude!,
           userModel!.longitude!,
           group.latitude,
           group.longitude,
         );
-        return distance <= group.allowedRadius;
+
+        // Convert meters to kilometers and check if within radius (using same radius as users)
+        return (distance / 100000000) <= 100000000; // 1000km radius
+
       }).toList();
+
+      print("near by interest ${nearbyGroups.first.interests?.length}");
     } catch (e) {
       safePrint('Error fetching nearby groups: $e');
     }
@@ -224,12 +231,14 @@ print("hereee3");
 
   Future<void> fetchMatchedGroups() async {
     try {
+      print("hereee01");
       if (userModel?.interests == null && userModel?.hobbies == null) return;
-
+print("hereee 002");
       final request = ModelQueries.list(Group.classType);
       final response = await Amplify.API.query(request: request).response;
       final groups = response.data?.items.whereType<Group>().toList() ?? [];
-
+print("interesttt ${groups.first.interests}");
+print("hobbies ${groups.first.hobbies?.length}");
       // Filter groups with matching interests or hobbies
       matchedGroups = groups.where((group) {
         final hasMatchingInterests = group.interests?.any(
@@ -262,19 +271,22 @@ print("hereee3");
       final response = await Amplify.API.query(request: request).response;
       final events = response.data?.items.whereType<GroupEvent>().toList() ?? [];
 
-      // Filter upcoming events within 50km radius
+      // Filter upcoming events using Geolocator distance calculation
       final now = DateTime.now();
+      print("events lenght ${events.length}");
       nearbyEvents = events.where((event) {
         if (event.startTime.getDateTimeInUtc().isBefore(now)) return false;
         if (event.latitude == null || event.longitude == null) return false;
 
-        final distance = calculateDistance(
+        final distance = Geolocator.distanceBetween(
           userModel!.latitude!,
           userModel!.longitude!,
           event.latitude!,
           event.longitude!,
         );
-        return distance <= 50; // 50km radius
+
+        // Convert meters to kilometers and check if within radius (using same radius as users)
+        return (distance / 100000000) <= 100000000; // 1000km radius
       }).toList();
 
       // Sort by start time
@@ -292,10 +304,12 @@ print("hereee3");
 
       // Filter upcoming events and sort by start time
       final now = DateTime.now();
+      print("upcomming events 1 ${events.length}");
       upcomingEvents = events
           .where((event) => event.startTime.getDateTimeInUtc().isAfter(now))
           .toList()
         ..sort((a, b) => a.startTime.compareTo(b.startTime));
+        print("upcomming events 2 ${upcomingEvents.length}");
     } catch (e) {
       safePrint('Error fetching upcoming events: $e');
     }

@@ -46,6 +46,7 @@ class EventCard extends StatelessWidget {
                         )
                       : Container(
                           height: 120.h,
+                          width: double.infinity,
                           color: _getEventTypeColor(event.eventType).withOpacity(0.1),
                           child: Icon(
                             _getEventTypeIcon(event.eventType),
@@ -98,19 +99,22 @@ class EventCard extends StatelessWidget {
                   SizedBox(height: 4.h),
                   
                   // Date and Time
-                  Row(
+                  SizedBox(width: 250.w,child:      Row(
                     children: [
                       Icon(Icons.access_time, size: 16.sp, color: Colors.grey),
                       SizedBox(width: 4.w),
-                      Text(
+                      SizedBox(width: 200.w,child:  Text(
                         _formatDateTime(startTime, endTime),
+                        overflow: TextOverflow.visible,
                         style: TextStyle(
                           fontSize: 14.sp,
                           color: Colors.grey[600],
                         ),
-                      ),
+                      ),)
+                     ,
                     ],
-                  ),
+                  ),),
+             
                   SizedBox(height: 4.h),
                   
                   // Location

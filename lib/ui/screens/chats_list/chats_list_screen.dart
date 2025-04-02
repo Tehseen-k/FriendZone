@@ -36,6 +36,7 @@ class ChatsListScreen extends StatelessWidget {
               ),
             ),
             bottom: TabBar(
+            
               tabs: [
                 Tab(text: 'Chats'),
                 Tab(text: 'Groups'),

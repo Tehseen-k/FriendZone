@@ -1,4 +1,5 @@
 import 'package:amplify_api/amplify_api.dart';
+import 'package:code_structure/models/Group.dart';
 import 'package:code_structure/models/GroupMember.dart';
 import 'package:code_structure/ui/screens/group/group_info_screen.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +45,7 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
       await Future.wait([
         _loadAttendees(),
         _checkGroupMembership(),
+        getgroup(),
       ]);
     } catch (e) {
       print('Error loading event data: $e');
@@ -86,6 +88,22 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
       print('Error checking group membership: $e');
     }
   }
+Group? group;
+    Future<void> getgroup() async {
+    try {
+      final request = ModelQueries.get(
+        Group.classType,
+        GroupModelIdentifier(id: widget.event.group.id)
+      
+      );
+      final response = await Amplify.API.query(request: request).response;
+      final grp = response.data;
+      group=grp;
+    } catch (e) {
+      print('Error checking group membership: $e');
+    }
+  }
+
 
   Future<void> _updateAttendanceStatus(String status) async {
     try {
@@ -252,7 +270,7 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => GroupInfoScreen(
-                    group: widget.event.group,
+                    group: group!,
                     currentUser: widget.currentUser,
                   ),
                 ),
@@ -460,7 +478,7 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => GroupInfoScreen(
-                group: widget.event.group,
+                group: group!,
                 currentUser: widget.currentUser,
               ),
             ),

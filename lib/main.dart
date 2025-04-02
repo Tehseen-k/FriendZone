@@ -15,92 +15,79 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_authenticator/amplify_authenticator.dart';
 import 'amplifyconfiguration.dart';
+
 //AKIAVY2PGWXN3VQV5QQX
 //UDxa5iyjraG9RgGpQO1GrLkPg5jOF9AQkZkIk6wC
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(
-  //   options: DefaultFirebaseOptions.currentPlatform,
-  // );
-  //grfEY3W[
-  //AKIAVY2PGWXNXCRJM3WM
-  //588rjI9Bheu18wnNaliHbnPGmHgUJ6lFnkM3nJx+
-  // await setupLocator();
-  await _configureAmplify();
-
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]).then((value) => runApp(const MyApp()));
+
+  await _configureAmplify();
 }
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    ///
-    /// ScreenUtilInit
-    ///
-    return ScreenUtilInit(
-        designSize: Size(MediaQuery.sizeOf(context).width,
-            MediaQuery.sizeOf(context).height),
-        minTextAdapt: true,
-        splitScreenMode: true,
-        child: Authenticator(
-          child: MaterialApp(
-              debugShowCheckedModeBanner: false,
-              theme: ThemeData(
-                  bottomAppBarTheme: BottomAppBarTheme(
-                      color: Colors.white,
-                      shadowColor: Colors.white,
-                      surfaceTintColor: Colors.white),
-                  bottomNavigationBarTheme: BottomNavigationBarThemeData(
-                    backgroundColor: whiteColor,
-                  ),
-                  scaffoldBackgroundColor: whiteColor,
-                  appBarTheme: AppBarTheme(
-                      backgroundColor: whiteColor,
-                      surfaceTintColor: whiteColor,
-                      shadowColor: whiteColor,
-                      foregroundColor: whiteColor),
-          
-                  ///
-                  /// Font Family
-                  ///
-                  fontFamily: "Nunito"),
-          
-              ///
-              /// Start Screen
-              ///
-              home: AuthWrapper(),
-              builder: Authenticator.builder(),
-              ),
-        ));
-  }
-}
-// main.dart
-
 
 Future<void> _configureAmplify() async {
   try {
     final auth = AmplifyAuthCognito();
     final storage = AmplifyStorageS3();
-    final api = AmplifyAPI( options: APIPluginOptions(modelProvider: ModelProvider.instance),); // Add this line
-    await Amplify.addPlugins([auth, api,storage]); // Add both plugins
+    final api = AmplifyAPI(
+      options: APIPluginOptions(modelProvider: ModelProvider.instance),
+    );
+    await Amplify.addPlugins([auth, api, storage]);
     await Amplify.configure(amplifyconfig);
   } catch (e) {
     safePrint('Error configuring Amplify: $e');
   }
 }
 
-
 User? userModel;
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ScreenUtilInit(
+      designSize: Size(
+          MediaQuery.sizeOf(context).width, MediaQuery.sizeOf(context).height),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      child:
+          // Authenticator(
+          //   child:
+          MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          bottomAppBarTheme: BottomAppBarTheme(
+            color: Colors.white,
+            shadowColor: Colors.white,
+            surfaceTintColor: Colors.white,
+          ),
+          bottomNavigationBarTheme: BottomNavigationBarThemeData(
+            backgroundColor: whiteColor,
+          ),
+          scaffoldBackgroundColor: whiteColor,
+          appBarTheme: AppBarTheme(
+            backgroundColor: whiteColor,
+            surfaceTintColor: whiteColor,
+            shadowColor: whiteColor,
+            foregroundColor: whiteColor,
+          ),
+          fontFamily: "Nunito",
+        ),
+        home: StartScreen(),
+        //
+      ),
+      //   ),
+    );
+  }
+}
+
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
-
-  Future getUser() async {
+ Future getUser() async {
     final user = await Amplify.Auth.getCurrentUser();
     try {
       final request = ModelQueries.get(
@@ -117,14 +104,15 @@ class AuthWrapper extends StatelessWidget {
       return null;
     }
   }
-
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<AuthSession>(
-      stream: Amplify.Auth.fetchAuthSession().asStream(),
+    return FutureBuilder(
+      future: Amplify.Auth.fetchAuthSession(),
       builder: (context, snapshot) {
+        print("hereeee");
         if (snapshot.hasData) {
           final authState = snapshot.data!;
+            print("hereeee2 ${snapshot.data?.isSignedIn}");
           if (authState.isSignedIn) {
             return FutureBuilder(
               future: getUser(),
@@ -133,107 +121,133 @@ class AuthWrapper extends StatelessWidget {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (userSnapshot.data != null) {
-                  return  RootScreen(); // Navigate to root screen if user exists
+                  return RootScreen(); // Navigate to root screen if user exists
                 }
-                return  SetupProfileScreen(); // Show setup profile if user doesn't exist
+                return SetupProfileScreen(); // Show setup profile if user doesn't exist
               },
             );
           }
         }
-        return Authenticator(child: AuthScreen());
+        return AuthScreen();
       },
     );
+
   }
 }
 
-
-
-// // Sign Up/In Screens
-class AuthScreen extends StatelessWidget {
+class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
 
-  // Future<void> _signUpWithEmail(
-  //     String email, String password, String name) async {
-  //   try {
-  //     await Amplify.Auth.signUp(
-  //       username: email,
-  //       password: password,
-  //       options: CognitoSignUpOptions(
-  //         userAttributes: {
-  //           CognitoUserAttributeKey.email: email,
-  //           CognitoUserAttributeKey.name: name,
-  //         },
-  //       ),
-  //     );
-  //   } on AuthException catch (e) {
-  //     print('Sign up failed: ${e.message}');
-  //   }
-  // }
+  @override
+  State<AuthScreen> createState() => _AuthScreenState();
+}
+
+class _AuthScreenState extends State<AuthScreen> {
+
+  bool _isLoading = false;
 
   Future<void> _signInWithEmail(String email, String password) async {
+    setState(() => _isLoading = true);
     try {
       final result = await Amplify.Auth.signIn(
         username: email,
         password: password,
       );
       if (result.isSignedIn) {
-        // Navigate to home
+        await _checkUserProfile();
       }
     } on AuthException catch (e) {
       print('Sign in failed: ${e.message}');
+      // Show error to user
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
- Future<void> _signInWithSocial(AuthProvider provider) async {
-  try {
-    final result = await Amplify.Auth.signInWithWebUI(provider: provider);
-    if (result.isSignedIn) {
-      // Get user attributes
-      final attributes = await Amplify.Auth.fetchUserAttributes();
-      String? profileImageUrl;
-      
-      for (final attribute in attributes) {
-        if (attribute.userAttributeKey == CognitoUserAttributeKey.picture) {
-          profileImageUrl = attribute.value;
+  Future<void> _signInWithSocial(AuthProvider provider) async {
+    setState(() => _isLoading = true);
+    try {
+      final result = await Amplify.Auth.signInWithWebUI(provider: provider);
+      if (result.isSignedIn) {
+        await _checkUserProfile();
+      }
+    } on AuthException catch (e) {
+      print('Social sign in failed: ${e.message}');
+      // Show error to user
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _checkUserProfile() async {
+    try {
+      final user = await Amplify.Auth.getCurrentUser();
+      final request = ModelQueries.get(
+        User.classType,
+        UserModelIdentifier(id: user.userId),
+      );
+      final response = await Amplify.API.query(request: request).response;
+      if (response.data != null) {
+        userModel = response.data;
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => RootScreen()),
+          );
+        }
+      } else {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => SetupProfileScreen()),
+          );
         }
       }
-
-      // If using Facebook and URL isn't direct
-      if (provider == AuthProvider.facebook && profileImageUrl != null) {
-        profileImageUrl = "$profileImageUrl?width=400&height=400";
+    } catch (e) {
+      print('Error checking user profile: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error checking user profile')),
+        );
       }
-
-      print("Profile image URL: $profileImageUrl");
-      // Navigate to profile screen with image URL
     }
-  } on AuthException catch (e) {
-    print('Social sign in failed: ${e.message}');
   }
-}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () => _signInWithSocial(AuthProvider.google),
-              child: const Text('Sign in with Google'),
+      body: StreamBuilder<AuthUser?>(
+        stream: Amplify.Auth.getCurrentUser().asStream(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting || _isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasData) {
+            // User is signed in, check their profile
+            return FutureBuilder(
+              future: _checkUserProfile(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return const Center(child: Text('Processing...'));
+              },
+            );
+          }
+
+          // User is not signed in, show authenticator
+          return Authenticator(
+            child: MaterialApp(
+              debugShowCheckedModeBanner: false,
+              theme: Theme.of(context),
+              home: AuthWrapper(),
+              builder: Authenticator.builder(),
             ),
-            ElevatedButton(
-              onPressed: () => _signInWithSocial(AuthProvider.facebook),
-              child: const Text('Sign in with Facebook'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 }
-
-
 // class ProfileScreen extends StatefulWidget {
 //   const ProfileScreen({super.key});
 

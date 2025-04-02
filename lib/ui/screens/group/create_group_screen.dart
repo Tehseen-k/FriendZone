@@ -265,11 +265,28 @@ class _CreateGroupView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Interests', style: style18B),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Interests', style: style18B),
+            Text(
+              '${viewModel.interests.length} selected',
+              style: TextStyle(
+                color: viewModel.interests.isEmpty ? Colors.red : primaryColor,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
         SizedBox(height: 8.h),
         Text(
-          "Select interests for your group",
-          style: style14B.copyWith(color: greyColor),
+          viewModel.interests.isEmpty
+              ? "Select at least one interest for your group"
+              : "Selected interests: ${viewModel.interests.join(', ')}",
+          style: style14B.copyWith(
+            color: viewModel.interests.isEmpty ? Colors.red : greyColor,
+          ),
         ),
         SizedBox(height: 16.h),
         Wrap(
@@ -279,9 +296,7 @@ class _CreateGroupView extends StatelessWidget {
             ...displayedInterests.map((interest) {
               final isSelected = viewModel.selectedInterests.contains(interest);
               return GestureDetector(
-                onTap: () => context
-                    .read<CreateGroupViewModel>()
-                    .toggleInterest(interest),
+                onTap: () => viewModel.toggleInterest(interest),
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 16.w,
@@ -303,9 +318,7 @@ class _CreateGroupView extends StatelessWidget {
             }),
             if (viewModel.availableInterests.length > 6)
               GestureDetector(
-                onTap: () => context
-                    .read<CreateGroupViewModel>()
-                    .toggleShowAllInterests(),
+                onTap: () => viewModel.toggleShowAllInterests(),
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 16.w,
@@ -339,11 +352,28 @@ class _CreateGroupView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Hobbies', style: style18B),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Hobbies', style: style18B),
+            Text(
+              '${viewModel.hobbies.length} selected',
+              style: TextStyle(
+                color: viewModel.hobbies.isEmpty ? Colors.red : primaryColor,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
         SizedBox(height: 8.h),
         Text(
-          "Select hobbies for your group",
-          style: style14B.copyWith(color: greyColor),
+          viewModel.hobbies.isEmpty
+              ? "Select at least one hobby for your group"
+              : "Selected hobbies: ${viewModel.hobbies.join(', ')}",
+          style: style14B.copyWith(
+            color: viewModel.hobbies.isEmpty ? Colors.red : greyColor,
+          ),
         ),
         SizedBox(height: 16.h),
         Wrap(
@@ -353,9 +383,7 @@ class _CreateGroupView extends StatelessWidget {
             ...displayedHobbies.map((hobby) {
               final isSelected = viewModel.selectedHobbies.contains(hobby);
               return GestureDetector(
-                onTap: () => context
-                    .read<CreateGroupViewModel>()
-                    .toggleHobby(hobby),
+                onTap: () => viewModel.toggleHobby(hobby),
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 16.w,
@@ -375,12 +403,9 @@ class _CreateGroupView extends StatelessWidget {
                 ),
               );
             }),
-  
-          if (viewModel.availableHobbies.length > 6)
+            if (viewModel.availableHobbies.length > 6)
               GestureDetector(
-                onTap: () => context
-                    .read<CreateGroupViewModel>()
-                    .toggleShowAllHobbies(),
+                onTap: () => viewModel.toggleShowAllHobbies(),
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 16.w,
@@ -612,6 +637,18 @@ class _CreateGroupView extends StatelessWidget {
         if (_formKey.currentState?.validate() ?? false) {
           try {
             final viewModel = context.read<CreateGroupViewModel>();
+            
+            // Add validation for interests and hobbies
+            if (viewModel.interests.isEmpty || viewModel.hobbies.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Please select at least one interest and hobby'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              return;
+            }
+
             await viewModel.createGroup();
             Navigator.pop(context);
           } catch (e) {

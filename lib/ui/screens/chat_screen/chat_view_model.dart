@@ -86,6 +86,7 @@ class ChatViewModel extends ChangeNotifier {
         return;
       }
 
+      // Load all messages for this chat room without any user-specific filtering
       final request = ModelQueries.list(
         Message.classType,
         where: Message.CHATROOM.contains(chatRoom!.id),
@@ -94,11 +95,16 @@ class ChatViewModel extends ChangeNotifier {
       final response = await Amplify.API.query(request: request).response;
       messages = response.data?.items.whereType<Message>().toList() ?? [];
       
-      // Sort messages by timestamp
-      messages.sort((a, b) => 
-        (b.createdAt ?? TemporalDateTime.now())
-            .compareTo(a.createdAt ?? TemporalDateTime.now()));
-
+      // Sort messages by creation time (newest first)
+      messages.sort((a, b) {
+        final aTime = a.createdAt?.getDateTimeInUtc();
+        final bTime = b.createdAt?.getDateTimeInUtc();
+        if (aTime == null && bTime == null) return 0;
+        if (aTime == null) return 1;
+        if (bTime == null) return -1;
+        return bTime.compareTo(aTime); // Descending order (newest first)
+      });
+      
       print('Loaded ${messages.length} messages');
 
     } catch (e) {
@@ -138,54 +144,79 @@ class ChatViewModel extends ChangeNotifier {
     return await _findOrCreateOneToOneChat();
   }
 
-  Future<ChatRoom> _createGroupChat() async {
-    // Check for existing group chat room
+Future<ChatRoom> _createGroupChat() async {
+  try {
+    if (group == null) {
+      throw Exception('Group is required for group chat');
+    }
+
+    // First check if there's already a chat room for this group
     final existingRoomRequest = ModelQueries.list(
-      ChatParticipant.classType,
-      where: ChatParticipant.USER.contains(currentUser.id),
+      ChatRoom.classType,
+      where: ChatRoom.NAME.eq(group!.name).and(ChatRoom.ISGROUPCHAT.eq(true)),
     );
 
     final response = await Amplify.API.query(request: existingRoomRequest).response;
-    final myParticipations = response.data?.items ?? [];
+    final existingRooms = response.data?.items.whereType<ChatRoom>().toList() ?? [];
     
-    for (final participation in myParticipations) {
-      final room = participation!.chatRoom;
-      if (room.isGroupChat && room.name == (groupName ?? 'Group Chat')) {
-        print('DEBUG: Found existing group chat room: ${room.id}');
-        return room; // Return existing room if found
+    if (existingRooms.isNotEmpty) {
+      final existingRoom = existingRooms.first;
+      print('DEBUG: Found existing group chat room: ${existingRoom.id}');
+      
+      // Check if current user is already a participant
+      final participantCheck = await _findChatParticipant(existingRoom, currentUser);
+      if (participantCheck == null) {
+        // Add current user as participant if not already added
+        await _createChatParticipant(existingRoom, currentUser, 'member');
       }
+      
+      return existingRoom;
     }
 
     // If no existing room found, create a new one
     final chatRoom = ChatRoom(
-      name: groupName ?? 'Group Chat',
+      name: group!.name,
       isGroupChat: true,
-      admin: currentUser,
+      admin: group!.admin,
       lastMessage: '',
       lastMessageTimestamp: TemporalDateTime.now(),
       createdAt: TemporalDateTime.now(),
     );
 
-    final createResponse = await Amplify.API
-        .mutate(
-          request: ModelMutations.create(chatRoom),
-        )
-        .response;
+    final createResponse = await Amplify.API.mutate(
+      request: ModelMutations.create(chatRoom),
+    ).response;
 
     final createdRoom = createResponse.data!;
     print('DEBUG: Group chat created with ID: ${createdRoom.id}');
 
-    print('DEBUG: Creating chat participants for group');
-    await Future.wait([
-      ...participants.map((user) {
-        print('DEBUG: Creating participant for user: ${user.id}');
-        return _createChatParticipant(createdRoom, user, 'member');
-      }),
-      _createChatParticipant(createdRoom, currentUser, 'admin'),
-    ]);
+    // Get all group members
+    final membersRequest = ModelQueries.list(
+      GroupMember.classType,
+      where: GroupMember.GROUP.contains(group!.id).and(GroupMember.STATUS.eq('active')),
+    );
+    
+    final membersResponse = await Amplify.API.query(request: membersRequest).response;
+    final groupMembers = membersResponse.data?.items.whereType<GroupMember>().toList() ?? [];
+
+    print('DEBUG: Creating chat participants for ${groupMembers.length} group members');
+    
+    // Create chat participants for all group members
+    await Future.wait(
+      groupMembers.map((member) => _createChatParticipant(
+        createdRoom,
+        member.user,
+        member.user.id == group!.admin.id ? 'admin' : 'member',
+      )),
+    );
 
     return createdRoom;
+  } catch (e, stackTrace) {
+    print('Error creating group chat: $e');
+    print('Stack trace: $stackTrace');
+    rethrow;
   }
+}
 
   Future<ChatRoom> _findOrCreateOneToOneChat() async {
     final otherUser = participants.first;
@@ -397,44 +428,6 @@ class ChatViewModel extends ChangeNotifier {
       rethrow;
     }
   }
-
-  // Future<void> sendMessage({
-  //   required String content,
-  //   String? mediaKey,
-  //   String? mediaType,
-  //   String? eventId,
-  // }) async {
-  //   try {
-  //     final message = Message(
-  //       content: content,
-  //       sender: currentUser,
-  //       mediaKey: mediaKey,
-  //       mediaType: mediaType,
-  //      // eventId: eventId,
-  //       group: isGroupChat ? group : null,
-  //       chatRoom: chatRoom!,
-  //       createdAt: TemporalDateTime(DateTime.now()),
-  //     );
-
-  //     // Optimistically add message
-  //     messages.insert(0, message);
-  //     notifyListeners();
-
-  //     // Send to backend
-  //     final response = await Amplify.API.mutate(
-  //       request: ModelMutations.create(message),
-  //     ).response;
-
-  //     if (!isGroupChat && chatRoom != null) {
-  //       await _updateChatRoomLastMessage(content);
-  //     }
-
-  //   } catch (e) {
-  //     print('Error sending message: $e');
-  //     messages.removeAt(0);
-  //     notifyListeners();
-  //   }
-  // }
 
   Future<void> _updateChatRoomLastMessage(String content) async {
     try {

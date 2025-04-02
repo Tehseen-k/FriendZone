@@ -1,191 +1,254 @@
-import 'package:code_structure/core/constants/app_asset.dart';
-import 'package:code_structure/core/constants/colors.dart';
-import 'package:code_structure/core/constants/strings.dart';
-import 'package:code_structure/core/constants/text_style.dart';
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:code_structure/main.dart';
+import 'package:code_structure/models/User.dart';
 import 'package:code_structure/ui/screens/auth/setup_profile/setup_profile_screen.dart';
-import 'package:code_structure/ui/screens/user_profile_screen/user_profile_view_model.dart';
+import 'package:code_structure/ui/screens/home_screen/home_veiw_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ProfileViewModel(),
-      child: Consumer<ProfileViewModel>(
-        builder: (context, value, child) => Scaffold(
-          ///
-          /// App Bar
-          ///
-          appBar: AppBar(
-            centerTitle: true,
-            title: Text(
-              "Profile",
-              style: style24B.copyWith(color: blackColor),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text(
+          "Profile",
+          style: TextStyle(
+            fontSize: 24.sp,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings, color: Colors.grey[700]),
+            onPressed: () {
+              // TODO: Add settings functionality later
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+          child: Column(
+            children: [
+              // Profile Image Section
+              _buildProfileImageWithPreview(context, userModel!),
+              SizedBox(height: 20.h),
 
-          ///
-          /// Start Body
-          ///
-
-          body: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ///
-                /// Profile
-                ///
-                _profile(),
-                20.verticalSpace,
-
-                ///
-                /// Divider
-                ///
-                Divider(),
-                20.verticalSpace,
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        AppAssets.email,
-                        scale: 4.5,
-                      ),
-                      10.horizontalSpace,
-                      Text(
-                        "Email Address",
-                        style: style16N.copyWith(
-                            color: blackColor, fontSize: 18.sp),
-                      ),
-                    ],
-                  ),
+              // User Info Section
+              Text(
+                userModel?.username ?? 'User Name',
+                style: TextStyle(
+                  fontSize: 25.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
-                10.verticalSpace,
-                iconRow(
-                    image: AppAssets.lock,
-                    name: 'Update Password',
-                    onPressed: () {}),
-
-                iconRow(
-                    image: AppAssets.gallery,
-                    name: 'Profile Photo',
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => SetupProfileScreen()));
-                    }),
-                iconRow(
-                    image: AppAssets.langauge,
-                    name: 'Language Settings',
-                    onPressed: () {}),
-                30.verticalSpace,
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Privacy Options',
-                    style:
-                        style16B.copyWith(color: blackColor, fontSize: 20.sp),
-                  ),
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                userModel?.email ?? 'user@example.com',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  color: Colors.grey[600],
                 ),
-                20.verticalSpace,
-                iconRow(
-                    image: AppAssets.hide_profile,
-                    name: 'Hide Profile from Public Search',
-                    onPressed: () {}),
-                iconRow(
-                    image: AppAssets.enableTwoFactor,
-                    name: 'Enable Two-Factor Authentication',
-                    onPressed: () {}),
-                iconRow(
-                    image: AppAssets.notification,
-                    name: 'Push Notification Settings',
-                    onPressed: () {}),
-                iconRow(
-                    image: AppAssets.email,
-                    name: 'Receive Updates via Email',
-                    onPressed: () {}),
-                iconRow(
-                    image: AppAssets.message,
-                    name: 'Receive SMS Notifications',
-                    onPressed: () {}),
-                iconRow(
-                    image: AppAssets.profile,
-                    name: 'Recent Login Activity',
-                    onPressed: () {}),
-                40.verticalSpace,
-              ],
-            ),
+              ),
+              SizedBox(height: 16.h),
+
+              // Bio Section
+              Container(
+                padding: EdgeInsets.all(16.w),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Text(
+                  userModel?.introduction ?? 'No bio added yet.',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: Colors.grey[700],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              SizedBox(height: 32.h),
+
+              // Action Buttons
+              _buildActionButton(
+                icon: Icons.edit,
+                text: 'View Profile',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SetupProfileScreen(),
+                    ),
+                  );
+                },
+              ),
+              SizedBox(height: 16.h),
+              _buildActionButton(
+                icon: Icons.help_outline,
+                text: 'Help & Support',
+                onPressed: () {
+                  launchURL('https://www.freeprivacypolicy.com/live/644989b1-30df-4fa9-946b-09e7359ca508');
+                },
+              ),
+              SizedBox(height: 32.h),
+
+              // Legal Links
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildLinkButton(
+                    text: 'Privacy Policy',
+                    onTap: () => launchURL('https://www.freeprivacypolicy.com/live/644989b1-30df-4fa9-946b-09e7359ca508'),
+                  ),
+                  _buildLinkButton(
+                    text: 'Terms',
+                    onTap: () => launchURL('https://www.freeprivacypolicy.com/live/644989b1-30df-4fa9-946b-09e7359ca508'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 40.h),
+
+              // Logout Button
+              _buildLogoutButton(context),
+            ],
           ),
         ),
       ),
     );
   }
-}
 
-_profile() {
-  return Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      Center(
-        child: Stack(
-          alignment: Alignment.bottomRight,
-          children: [
-            CircleAvatar(
-              radius: 70.r,
-              backgroundImage: AssetImage("$dynamicAssets/woman.png"),
-            ),
-            InkWell(
-              onTap: () {},
+  // Profile Image Widget
+ Widget _buildProfileImageWithPreview(BuildContext context, User userModel) {
+    return userModel.profileImageKey!=null?FutureBuilder<String>(
+      future: getFileUrl(userModel.profileImageKey!),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return GestureDetector(
+            onTap: () => showImagePreview(snapshot.data!, context),
+            child: Hero(
+              tag: 'profileImage',
               child: CircleAvatar(
-                backgroundColor: blueColor,
-                radius: 20.r,
-                child: Icon(
-                  Icons.edit,
-                  color: whiteColor,
-                  size: 20,
-                ),
+                radius: 70.r,
+                backgroundImage: NetworkImage(snapshot.data!),
               ),
             ),
-          ],
+          );
+        }
+        return CircleAvatar(
+          radius: 70.r,
+          backgroundColor: Colors.grey[300],
+          child: Icon(Icons.person, size: 50, color: Colors.white),
+        );
+      },
+    ): CircleAvatar(
+          radius: 70.r,
+          backgroundColor: Colors.grey[300],
+          child: Icon(Icons.person, size: 50, color: Colors.white),
+        );
+  }
+  // Action Button Widget (Edit Profile, Help & Support)
+  Widget _buildActionButton({
+    required IconData icon,
+    required String text,
+    required VoidCallback onPressed,
+  }) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.black87,
+        backgroundColor: Colors.white,
+        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 14.h),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          side: BorderSide(color: Colors.grey[300]!),
         ),
+        elevation: 0,
       ),
-      Text(
-        "Aurelia Smith",
-        style: style25B.copyWith(color: blackColor),
-      ),
-      Text(
-        "aurelia.smith@example.com",
-        style: style16.copyWith(color: greyColor),
-      ),
-    ],
-  );
-}
-
-iconRow(
-    {required String? image,
-    required String? name,
-    required VoidCallback onPressed}) {
-  return GestureDetector(
-    onTap: onPressed,
-    child: Padding(
-      padding: const EdgeInsets.only(bottom: 20.0, left: 16.0, right: 16.0),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset(
-            "$image",
-            scale: 4,
-          ),
-          15.horizontalSpace,
+          Icon(icon, color: Colors.blue[600]),
+          SizedBox(width: 12.w),
           Text(
-            "$name",
-            style: style16N.copyWith(color: blackColor, fontSize: 18.sp),
+            text,
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
-    ),
-  );
+    );
+  }
+
+  // Link Button Widget (Privacy, Terms)
+  Widget _buildLinkButton({required String text, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(color: Colors.blue[600]!),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: Colors.blue[600],
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Logout Button Widget
+  Widget _buildLogoutButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () async {
+        await _signOut();
+        Navigator.pop(context);
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.red[600],
+        padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 14.h),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+      ),
+      child: Text(
+        'Logout',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 16.sp,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  // Helper Functions
+  Future<void> _signOut() async {
+    try {
+      await Amplify.Auth.signOut();
+    } catch (e) {
+      print('Error signing out: $e');
+    }
+  }
+
+  void launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 }

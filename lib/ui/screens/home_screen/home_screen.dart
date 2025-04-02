@@ -64,8 +64,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                     // _appBar(),
-                      
+                      //      _appBar(),
+
+                      // Matched Users Section
+                      _sectionHeader(
+                        "Best Matches",
+                        "People who share your interests",
+                        onSeeAll: () {
+                          // Navigate to all matched users
+                        },
+                      ),
+                      _buildMatchedUsers(model),
+
+                      // Nearby Users Section
+                      _sectionHeader(
+                        "People Nearby",
+                        "Users in your area",
+                        onSeeAll: () {
+                          // Navigate to all nearby users
+                        },
+                      ),
+                      _buildNearbyUsers(model),
+
                       // Matched Groups Section
                       _sectionHeader(
                         "Matched Groups",
@@ -118,7 +138,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _sectionHeader(String title, String subtitle, {VoidCallback? onSeeAll}) {
+  Widget _sectionHeader(String title, String subtitle,
+      {VoidCallback? onSeeAll}) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Row(
@@ -143,18 +164,293 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          if (onSeeAll != null)
-            TextButton(
-              onPressed: onSeeAll,
-              child: Text(
-                "See All",
-                style: TextStyle(
-                  color: primaryColor,
-                  fontWeight: FontWeight.w600,
+      //    if (onSeeAll != null)
+            // TextButton(
+            //   onPressed: onSeeAll,
+            //   child: Text(
+            //     "See All",
+            //     style: TextStyle(
+            //       color: primaryColor,
+            //       fontWeight: FontWeight.w600,
+            //     ),
+            //   ),
+            // ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMatchedUsers(HomeScreenVeiwModel model) {
+    if (model.isLoading) {
+      return _buildLoadingList();
+    }
+
+    if (model.matchedUsers.isEmpty) {
+      return _buildEmptyState(
+        "No matches found",
+        "Try expanding your interests and hobbies",
+        Icons.people_outline,
+      );
+    }
+
+    return SizedBox(
+      height: 200.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        itemCount: model.matchedUsers.length,
+        itemBuilder: (context, index) {
+          final user = model.matchedUsers[index]!;
+          final matchScore = calculateCompatibilityScore(user);
+
+          return Container(
+            width: 150.w,
+            margin: EdgeInsets.only(right: 16.w),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: InkWell(
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) =>
+                          CompatibiltyScore(matchedUser: user)));
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(12.r),
+                          ),
+                          child: user.profileImageKey != null
+                              ? FutureBuilder(
+                                  future: getFileUrl(user.profileImageKey!),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData) {
+                                      return Image.network(
+                                        snapshot.data!,
+                                        height: 120.h,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                      );
+                                    }
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        color: primaryColor,
+                                      ),
+                                    );
+                                  })
+                              : Container(
+                                  height: 120.h,
+                                  width: double.infinity,
+                                  color: primaryColor.withOpacity(0.1),
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 48.sp,
+                                    color: primaryColor,
+                                  ),
+                                ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
+                          ),
+                          margin: EdgeInsets.all(8.w),
+                          decoration: BoxDecoration(
+                            color: primaryColor,
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Text(
+                            '${matchScore.toStringAsFixed(0)}%',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(8.w),
+                      child: Column(
+                        children: [
+                          Text(
+                            user.username,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (user.address != null) ...[
+                            SizedBox(height: 4.h),
+                            Text(
+                              user.address!,
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: Colors.grey[600],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-        ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildNearbyUsers(HomeScreenVeiwModel model) {
+    if (model.isLoading) {
+      return _buildLoadingList();
+    }
+
+    if (model.nearbyUsers.isEmpty) {
+      return _buildEmptyState(
+        "No users nearby",
+        "Try expanding your search radius",
+        Icons.location_off,
+      );
+    }
+
+    return SizedBox(
+      height: 200.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        itemCount: model.nearbyUsers.length,
+        itemBuilder: (context, index) {
+          final user = model.nearbyUsers[index]!;
+          final distance = calculateDistance(
+            userModel!.latitude!,
+            userModel!.longitude!,
+            user.latitude!,
+            user.longitude!,
+          );
+
+          return Container(
+            width: 150.w,
+            margin: EdgeInsets.only(right: 16.w),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: InkWell(
+                onTap: () {
+                  final compatibilityScore = calculateCompatibilityScore(user);
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => UserProfileScreen(
+                          matchedUser: user,
+                          compatibilityScore: compatibilityScore)));
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(12.r),
+                          ),
+                          child: user.profileImageKey != null
+                              ? FutureBuilder(
+                                  future: getFileUrl(user.profileImageKey!),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData) {
+                                      return Image.network(
+                                        snapshot.data!,
+                                        height: 120.h,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                      );
+                                    }
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        color: primaryColor,
+                                      ),
+                                    );
+                                  })
+                              : Container(
+                                  height: 120.h,
+                                  width: double.infinity,
+                                  color: primaryColor.withOpacity(0.1),
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 48.sp,
+                                    color: primaryColor,
+                                  ),
+                                ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
+                          ),
+                          margin: EdgeInsets.all(8.w),
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Text(
+                            '${distance.toStringAsFixed(1)}km',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(8.w),
+                      child: Column(
+                        children: [
+                          Text(
+                            user.username,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (user.address != null) ...[
+                            SizedBox(height: 4.h),
+                            Text(
+                              user.address!,
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: Colors.grey[600],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -173,7 +469,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return SizedBox(
-      height: 280.h,
+      height: 250.h,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -182,6 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final group = model.matchedGroups[index];
           return Container(
             width: 280.w,
+            height: 200.h,
             padding: EdgeInsets.only(right: 16.w),
             child: GroupCard(
               group: group,
@@ -218,7 +515,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return SizedBox(
-      height: 280.h,
+      height: 250.h,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -226,7 +523,8 @@ class _HomeScreenState extends State<HomeScreen> {
         itemBuilder: (context, index) {
           final group = model.nearbyGroups[index];
           return Container(
-            width: 280.w,
+            width: 288.w,
+            height: 250.h,
             padding: EdgeInsets.only(right: 16.w),
             child: GroupCard(
               group: group,
@@ -421,16 +719,16 @@ _appBar() {
         ),
       ),
       10.horizontalSpace,
-      CircleAvatar(
-        radius: 20,
-        backgroundColor: blueColor,
-        child: IconButton(
-          icon: Icon(Icons.person, color: Colors.white),
-          onPressed: () {
-            // Navigate to nearby matches
-          },
-        ),
-      ),
+      // CircleAvatar(
+      //   radius: 20,
+      //   backgroundColor: blueColor,
+      //   child: IconButton(
+      //     icon: Icon(Icons.person, color: Colors.white),
+      //     onPressed: () {
+      //       // Navigate to nearby matches
+      //     },
+      //   ),
+      // ),
       20.horizontalSpace,
     ],
   );
@@ -442,21 +740,21 @@ _compabilityScore(HomeScreenVeiwModel model) {
           height: 185,
           width: double.infinity,
           child: ListView.builder(
-            itemCount: model.matchedUsers.length ,
+            itemCount: model.matchedUsers.length,
             scrollDirection: Axis.horizontal,
             shrinkWrap: true,
             itemBuilder: (BuildContext context, int index) {
               return GestureDetector(
                   onTap: () {
-                    
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => CompatibiltyScore(matchedUser: model.matchedUsers[index]!,)));
+                            builder: (context) => CompatibiltyScore(
+                                  matchedUser: model.matchedUsers[index]!,
+                                )));
                   },
                   child: CustomCompatibilityScorewidget(
-                      matchedUser:
-                          model.matchedUsers[index]!));
+                      matchedUser: model.matchedUsers[index]!));
             },
           ),
         )
@@ -511,9 +809,13 @@ _nearByMatches(HomeScreenVeiwModel model, double screenWidth) {
             itemBuilder: (BuildContext context, int index) {
               return GestureDetector(
                 onTap: () {
-                  final compatibilityScore = calculateCompatibilityScore(model.nearbyUsers[index]!);
-                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => UserProfileScreen(matchedUser:model.nearbyUsers[index]!,compatibilityScore: compatibilityScore,)));
-                  
+                  final compatibilityScore =
+                      calculateCompatibilityScore(model.nearbyUsers[index]!);
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => UserProfileScreen(
+                            matchedUser: model.nearbyUsers[index]!,
+                            compatibilityScore: compatibilityScore,
+                          )));
                 },
                 child: CustomNearbyMatchesWidget(
                     Object_nearbyMatches: model.nearbyUsers[index]!),
@@ -559,6 +861,7 @@ _nearByMatches(HomeScreenVeiwModel model, double screenWidth) {
           ),
         );
 }
+
 _upComingEvents(HomeScreenVeiwModel model, double screenheight) {
   return model.upComingActivites.isNotEmpty
       ? SizedBox(

@@ -121,8 +121,10 @@ class CreateGroupViewModel extends ChangeNotifier {
   void toggleInterest(String interest) {
     if (selectedInterests.contains(interest)) {
       selectedInterests.remove(interest);
+      interests.remove(interest);
     } else {
       selectedInterests.add(interest);
+      interests.add(interest);
     }
     notifyListeners();
   }
@@ -130,8 +132,10 @@ class CreateGroupViewModel extends ChangeNotifier {
   void toggleHobby(String hobby) {
     if (selectedHobbies.contains(hobby)) {
       selectedHobbies.remove(hobby);
+      hobbies.remove(hobby);
     } else {
       selectedHobbies.add(hobby);
+      hobbies.add(hobby);
     }
     notifyListeners();
   }
@@ -217,6 +221,10 @@ class CreateGroupViewModel extends ChangeNotifier {
       throw Exception('Required fields are missing');
     }
 
+    if (interests.isEmpty || hobbies.isEmpty) {
+      throw Exception('Please select at least one interest and hobby');
+    }
+
     isLoading = true;
     notifyListeners();
 
@@ -226,12 +234,14 @@ class CreateGroupViewModel extends ChangeNotifier {
         await getFileUrl(fileKey);
       }
 
+      print("Creating group with interests: $interests and hobbies: $hobbies");
+
       // Create group
       final group = Group(
         name: groupName!,
         description: description!,
-        interests: interests,
-        hobbies: hobbies,
+        interests: List<String>.from(interests),
+        hobbies: List<String>.from(hobbies),
         latitude: latitude,
         longitude: longitude,
         allowedRadius: allowedRadius,
