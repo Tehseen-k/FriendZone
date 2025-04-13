@@ -1,7 +1,6 @@
 import 'package:code_structure/core/enums/view_state_model.dart';
 import 'package:code_structure/core/others/base_view_model.dart';
 import 'package:code_structure/main.dart';
-import 'package:code_structure/ui/screens/chat/chat_users.dart';
 import 'package:code_structure/ui/screens/chats_list/chats_list_screen.dart';
 import 'package:code_structure/ui/screens/group/group_screen.dart';
 import 'package:code_structure/ui/screens/home_screen/home_screen.dart';
@@ -16,15 +15,15 @@ class RootViewModel extends BaseViewModel {
   List<Widget> allScreen = [
     HomeScreen(),
     GroupScreen(),
-    ChatsListScreen(currentUser: userModel!,),
+    ChatsListScreen(),
     ProfileScreen(),
   ];
 
   ///
   /// Constructor
   ///
-  RootViewModel(val) {
-    updatedScreen(val);
+  RootViewModel(int? val) : selectedScreen = val ?? 0 {
+    updatedScreen(selectedScreen);
     notifyListeners();
   }
 

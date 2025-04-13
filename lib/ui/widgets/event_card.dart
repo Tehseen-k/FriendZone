@@ -20,8 +20,9 @@ class EventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final startTime = event.startTime.getDateTimeInUtc();
     final endTime = event.endTime.getDateTimeInUtc();
-    
+
     return Card(
+      color: whiteColor,
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16.r),
@@ -36,7 +37,8 @@ class EventCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(16.r)),
                   child: event.mediaKeys?.isNotEmpty ?? false
                       ? Image.network(
                           event.mediaKeys!.first,
@@ -47,7 +49,8 @@ class EventCard extends StatelessWidget {
                       : Container(
                           height: 120.h,
                           width: double.infinity,
-                          color: _getEventTypeColor(event.eventType).withOpacity(0.1),
+                          color: _getEventTypeColor(event.eventType)
+                              .withOpacity(0.1),
                           child: Icon(
                             _getEventTypeIcon(event.eventType),
                             size: 48.sp,
@@ -80,7 +83,7 @@ class EventCard extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             Padding(
               padding: EdgeInsets.all(12.w),
               child: Column(
@@ -97,26 +100,32 @@ class EventCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: 4.h),
-                  
+
                   // Date and Time
-                  SizedBox(width: 250.w,child:      Row(
-                    children: [
-                      Icon(Icons.access_time, size: 16.sp, color: Colors.grey),
-                      SizedBox(width: 4.w),
-                      SizedBox(width: 200.w,child:  Text(
-                        _formatDateTime(startTime, endTime),
-                        overflow: TextOverflow.visible,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Colors.grey[600],
+                  SizedBox(
+                    width: 250.w,
+                    child: Row(
+                      children: [
+                        Icon(Icons.access_time,
+                            size: 16.sp, color: Colors.grey),
+                        SizedBox(width: 4.w),
+                        SizedBox(
+                          width: 200.w,
+                          child: Text(
+                            _formatDateTime(startTime, endTime),
+                            overflow: TextOverflow.visible,
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.grey[600],
+                            ),
+                          ),
                         ),
-                      ),)
-                     ,
-                    ],
-                  ),),
-             
+                      ],
+                    ),
+                  ),
+
                   SizedBox(height: 4.h),
-                  
+
                   // Location
                   Row(
                     children: [
@@ -135,7 +144,7 @@ class EventCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   // Group Name
                   SizedBox(height: 8.h),
                   Row(
@@ -168,7 +177,7 @@ class EventCard extends StatelessWidget {
   String _formatDateTime(DateTime start, DateTime end) {
     final dateFormat = DateFormat('MMM d');
     final timeFormat = DateFormat('h:mm a');
-    
+
     if (start.day == end.day) {
       return '${dateFormat.format(start)} · ${timeFormat.format(start)} - ${timeFormat.format(end)}';
     } else {

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:code_structure/core/constants/app_asset.dart';
 import 'package:code_structure/core/constants/colors.dart';
 import 'package:code_structure/core/constants/text_style.dart';
@@ -19,11 +21,9 @@ class StartScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _headerText(),
-            50.verticalSpace,
-            Image.asset(
-              AppAssets().app_start,
-              fit: BoxFit.cover,
-            ),
+            Spacer(),
+            Image.asset(AppAssets().orbit),
+            Spacer(),
           ],
         ),
       ),
@@ -67,7 +67,7 @@ _headerText() {
 
 _bottomTextButton(BuildContext context) {
   return Container(
-    margin: EdgeInsets.all(10),
+    margin: EdgeInsets.symmetric(horizontal: 10, vertical: 30),
     color: Colors.transparent,
     height: 100,
     child: CustomButton(
@@ -79,4 +79,99 @@ _bottomTextButton(BuildContext context) {
       textColor: whiteColor,
     ),
   );
+}
+
+class OrbitAnimation extends StatefulWidget {
+  @override
+  _OrbitAnimationState createState() => _OrbitAnimationState();
+}
+
+class _OrbitAnimationState extends State<OrbitAnimation>
+    with TickerProviderStateMixin {
+  late AnimationController _controller;
+
+  final double centerSize = 80;
+  final double orbitRadius = 100;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 10),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Widget _buildOrbitingAvatar(double angle, String imageUrl) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (_, child) {
+        final double rotation = _controller.value * 2 * pi;
+        final double x = orbitRadius * cos(rotation + angle);
+        final double y = orbitRadius * sin(rotation + angle);
+        return Positioned(
+          left: x + orbitRadius + (centerSize / 2) - 25,
+          top: y + orbitRadius + (centerSize / 2) - 25,
+          child: CircleAvatar(
+            backgroundImage: AssetImage(imageUrl),
+            radius: 30,
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<String> avatars = [
+      AppAssets().woman,
+      AppAssets().woman,
+      AppAssets().woman,
+      AppAssets().woman,
+      AppAssets().woman,
+      AppAssets().woman,
+    ];
+
+    return SizedBox(
+      width: (orbitRadius + 50) * 2,
+      height: (orbitRadius + 50) * 2,
+      child: Stack(
+        children: [
+          // Circular orbit line
+          Positioned.fill(
+            child: Center(
+              child: Container(
+                width: orbitRadius * 2,
+                height: orbitRadius * 2,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade300, width: 1),
+                ),
+              ),
+            ),
+          ),
+
+          // Central avatar
+          Positioned.fill(
+            child: Center(
+              child: CircleAvatar(
+                backgroundImage: AssetImage(AppAssets().woman),
+                radius: centerSize / 2,
+              ),
+            ),
+          ),
+
+          // Orbiting avatars
+          for (int i = 0; i < avatars.length; i++)
+            _buildOrbitingAvatar((3 * pi / avatars.length) * i, avatars[i]),
+        ],
+      ),
+    );
+  }
 }

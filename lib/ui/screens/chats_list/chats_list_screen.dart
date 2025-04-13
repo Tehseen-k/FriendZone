@@ -12,10 +12,10 @@ import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class ChatsListScreen extends StatelessWidget {
-  final User currentUser;
+  final User? currentUser;
 
   const ChatsListScreen({
-    required this.currentUser,
+    this.currentUser,
     Key? key,
   }) : super(key: key);
 
@@ -24,7 +24,7 @@ class ChatsListScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: ChangeNotifierProvider(
-        create: (_) => ChatsListViewModel(currentUser: currentUser),
+        create: (_) => ChatsListViewModel(currentUser: currentUser!),
         child: Scaffold(
           appBar: AppBar(
             title: Text(
@@ -36,7 +36,6 @@ class ChatsListScreen extends StatelessWidget {
               ),
             ),
             bottom: TabBar(
-            
               tabs: [
                 Tab(text: 'Chats'),
                 Tab(text: 'Groups'),
@@ -127,7 +126,7 @@ class _ChatsList extends StatelessWidget {
           onRefresh: viewModel.refreshChats,
           color: primaryColor,
           child: ListView.builder(
-            itemCount: viewModel.chatRooms.length,
+            itemCount: viewModel.chatRooms.length ?? 0,
             itemBuilder: (context, index) {
               return _ChatTile(chatRoom: viewModel.chatRooms[index]);
             },
@@ -142,7 +141,7 @@ class _ChatTile extends StatelessWidget {
   final ChatRoom chatRoom;
   Group? group;
 
-   _ChatTile({
+  _ChatTile({
     required this.chatRoom,
     this.group,
     Key? key,
@@ -189,7 +188,10 @@ class _ChatTile extends StatelessWidget {
                 participants: viewModel.getChatParticipants(chatRoom),
                 isGroupChat: chatRoom.isGroupChat,
                 groupName: chatRoom.name,
-                group:chatRoom.isGroupChat? viewModel.groups.firstWhere((grp)=>grp.name==chatRoom.name):null,
+                group: chatRoom.isGroupChat
+                    ? viewModel.groups
+                        .firstWhere((grp) => grp.name == chatRoom.name)
+                    : null,
               ),
             ),
           );
@@ -479,7 +481,7 @@ class _GroupTile extends StatelessWidget {
         );
       },
       leading: FutureBuilder<String?>(
-        future: group.mediaKeys?.isNotEmpty == true 
+        future: group.mediaKeys?.isNotEmpty == true
             ? getFileUrl(group.mediaKeys!.first)
             : Future.value(null),
         builder: (context, snapshot) {
@@ -518,7 +520,7 @@ class _GroupTile extends StatelessWidget {
 void _navigateToChat(BuildContext context, ChatRoom chatRoom) {
   final viewModel = context.read<ChatsListViewModel>();
   final otherUser = viewModel.getChatParticipants(chatRoom).first;
-  
+
   Navigator.push(
     context,
     MaterialPageRoute(

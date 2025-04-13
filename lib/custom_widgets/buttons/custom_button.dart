@@ -62,6 +62,10 @@ class _CustomButtonState extends State<CustomButton> {
                       width: 0.5,
                       color: widget.borderColor ?? transparentColor),
                   color: widget.boxColor ?? buttonColor,
+                  gradient: LinearGradient(colors: [
+                    Color(0xffFECB48),
+                    Color(0xffFECB48),
+                  ]),
                   borderRadius: BorderRadius.circular(96.r)),
               child: Text(
                 "${widget.name}",

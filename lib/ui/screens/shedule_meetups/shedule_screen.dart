@@ -1,7 +1,7 @@
+// ignore_for_file: body_might_complete_normally_nullable
+
 import 'package:code_structure/core/constants/colors.dart';
 import 'package:code_structure/core/constants/text_style.dart';
-import 'package:code_structure/custom_widgets/friend_zone/compatibility_score.dart';
-import 'package:code_structure/ui/screens/compatibility_screen/compatibility_score_view.dart';
 import 'package:code_structure/ui/screens/shedule_meetups/shedule_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
