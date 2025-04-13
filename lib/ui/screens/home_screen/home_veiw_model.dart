@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_null_comparison
+
 import 'dart:math';
 
 import 'package:amplify_api/amplify_api.dart';
@@ -118,7 +120,7 @@ class HomeScreenVeiwModel extends BaseViewModel {
   Future<void> initialize() async {
     isLoading = true;
     notifyListeners();
-    
+
     await Future.wait([
       fetchMatchedUsers(),
       fetchNearbyUsers(),
@@ -168,7 +170,7 @@ class HomeScreenVeiwModel extends BaseViewModel {
     try {
       print("hereee2");
       if (userModel?.latitude == null || userModel?.longitude == null) return;
-print("hereee3");
+      print("hereee3");
       final request = ModelQueries.list(User.classType);
       final response = await Amplify.API.query(request: request).response;
       final users = response.data?.items;
@@ -220,7 +222,6 @@ print("hereee3");
 
         // Convert meters to kilometers and check if within radius (using same radius as users)
         return (distance / 100000000) <= 100000000; // 1000km radius
-
       }).toList();
 
       print("near by interest ${nearbyGroups.first.interests?.length}");
@@ -233,21 +234,23 @@ print("hereee3");
     try {
       print("hereee01");
       if (userModel?.interests == null && userModel?.hobbies == null) return;
-print("hereee 002");
+      print("hereee 002");
       final request = ModelQueries.list(Group.classType);
       final response = await Amplify.API.query(request: request).response;
       final groups = response.data?.items.whereType<Group>().toList() ?? [];
-print("interesttt ${groups.first.interests}");
-print("hobbies ${groups.first.hobbies?.length}");
+      print("interesttt ${groups.first.interests}");
+      print("hobbies ${groups.first.hobbies?.length}");
       // Filter groups with matching interests or hobbies
       matchedGroups = groups.where((group) {
         final hasMatchingInterests = group.interests?.any(
-          (interest) => userModel?.interests?.contains(interest) ?? false,
-        ) ?? false;
+              (interest) => userModel?.interests?.contains(interest) ?? false,
+            ) ??
+            false;
 
         final hasMatchingHobbies = group.hobbies?.any(
-          (hobby) => userModel?.hobbies?.contains(hobby) ?? false,
-        ) ?? false;
+              (hobby) => userModel?.hobbies?.contains(hobby) ?? false,
+            ) ??
+            false;
 
         return hasMatchingInterests || hasMatchingHobbies;
       }).toList();
@@ -269,7 +272,8 @@ print("hobbies ${groups.first.hobbies?.length}");
 
       final request = ModelQueries.list(GroupEvent.classType);
       final response = await Amplify.API.query(request: request).response;
-      final events = response.data?.items.whereType<GroupEvent>().toList() ?? [];
+      final events =
+          response.data?.items.whereType<GroupEvent>().toList() ?? [];
 
       // Filter upcoming events using Geolocator distance calculation
       final now = DateTime.now();
@@ -300,7 +304,8 @@ print("hobbies ${groups.first.hobbies?.length}");
     try {
       final request = ModelQueries.list(GroupEvent.classType);
       final response = await Amplify.API.query(request: request).response;
-      final events = response.data?.items.whereType<GroupEvent>().toList() ?? [];
+      final events =
+          response.data?.items.whereType<GroupEvent>().toList() ?? [];
 
       // Filter upcoming events and sort by start time
       final now = DateTime.now();
@@ -309,7 +314,7 @@ print("hobbies ${groups.first.hobbies?.length}");
           .where((event) => event.startTime.getDateTimeInUtc().isAfter(now))
           .toList()
         ..sort((a, b) => a.startTime.compareTo(b.startTime));
-        print("upcomming events 2 ${upcomingEvents.length}");
+      print("upcomming events 2 ${upcomingEvents.length}");
     } catch (e) {
       safePrint('Error fetching upcoming events: $e');
     }
@@ -333,89 +338,91 @@ print("hobbies ${groups.first.hobbies?.length}");
       }
     }
 
-    final totalInterests = (userModel!.interests?.length ?? 0) + 
-                          (group.interests?.length ?? 0);
-    final totalHobbies = (userModel!.hobbies?.length ?? 0) + 
-                        (group.hobbies?.length ?? 0);
+    final totalInterests =
+        (userModel!.interests?.length ?? 0) + (group.interests?.length ?? 0);
+    final totalHobbies =
+        (userModel!.hobbies?.length ?? 0) + (group.hobbies?.length ?? 0);
 
     if (totalInterests + totalHobbies == 0) return 0.0;
-
-    return ((matchingInterests + matchingHobbies) / 
-            (totalInterests + totalHobbies)) * 100;
-  }
-
-  // Helper method to calculate compatibility score (optional)
-
-
-
-
-
-} 
-double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-  const R = 6371.0; // Earth's radius in kilometers
-  final dLat = _toRadians(lat2 - lat1);
-  final dLon = _toRadians(lon2 - lon1);
-  final a = sin(dLat / 2) * sin(dLat / 2) +
-      cos(_toRadians(lat1)) * cos(_toRadians(lat2)) * sin(dLon / 2) * sin(dLon / 2);
-  final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-  return R * c;
-}
-double _toRadians(double degree) {
-  return degree * pi / 180;
-}
-
-   Future<String> getFileUrl(String fileKey) async {
-    final result = await Amplify.Storage.getUrl(
-        path: StoragePath.fromString(fileKey),
-        options: StorageGetUrlOptions(
-          pluginOptions: S3GetUrlPluginOptions(
-            expiresIn: Duration(days: 7),
-            validateObjectExistence: true,
-          ),
-        ) // 1 hour expiration
-        ).result;
-    return result.url.toString();
-  }
-void showImagePreview(String imageUrl,context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          backgroundColor: Colors.black,
-          body: Stack(
-            children: [
-              PhotoView(
-                imageProvider: NetworkImage(imageUrl),
-                heroAttributes: PhotoViewHeroAttributes(tag: 'profileImage'),
-              ),
-              SafeArea(
-                child: IconButton(
-                  icon: Icon(Icons.close, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  double calculateCompatibilityScore(User otherUser) {
-    if (userModel == null) return 0.0;
-
-    final matchingInterests = userModel!.interests!
-        .where((interest) => otherUser.interests?.contains(interest) ?? false)
-        .length;
-
-    final matchingHobbies = userModel!.hobbies!
-        .where((hobby) => otherUser.hobbies?.contains(hobby) ?? false)
-        .length;
-
-    final totalInterests = userModel!.interests!.length;
-    final totalHobbies = userModel!.hobbies!.length;
 
     return ((matchingInterests + matchingHobbies) /
             (totalInterests + totalHobbies)) *
         100;
   }
+
+  // Helper method to calculate compatibility score (optional)
+}
+
+double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+  const R = 6371.0; // Earth's radius in kilometers
+  final dLat = _toRadians(lat2 - lat1);
+  final dLon = _toRadians(lon2 - lon1);
+  final a = sin(dLat / 2) * sin(dLat / 2) +
+      cos(_toRadians(lat1)) *
+          cos(_toRadians(lat2)) *
+          sin(dLon / 2) *
+          sin(dLon / 2);
+  final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+  return R * c;
+}
+
+double _toRadians(double degree) {
+  return degree * pi / 180;
+}
+
+Future<String> getFileUrl(String fileKey) async {
+  final result = await Amplify.Storage.getUrl(
+      path: StoragePath.fromString(fileKey),
+      options: StorageGetUrlOptions(
+        pluginOptions: S3GetUrlPluginOptions(
+          expiresIn: Duration(days: 7),
+          validateObjectExistence: true,
+        ),
+      ) // 1 hour expiration
+      ).result;
+  return result.url.toString();
+}
+
+void showImagePreview(String imageUrl, context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          children: [
+            PhotoView(
+              imageProvider: NetworkImage(imageUrl),
+              heroAttributes: PhotoViewHeroAttributes(tag: 'profileImage'),
+            ),
+            SafeArea(
+              child: IconButton(
+                icon: Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+double calculateCompatibilityScore(User otherUser) {
+  if (userModel == null) return 0.0;
+
+  final matchingInterests = userModel!.interests!
+      .where((interest) => otherUser.interests?.contains(interest) ?? false)
+      .length;
+
+  final matchingHobbies = userModel!.hobbies!
+      .where((hobby) => otherUser.hobbies?.contains(hobby) ?? false)
+      .length;
+
+  final totalInterests = userModel!.interests!.length;
+  final totalHobbies = userModel!.hobbies!.length;
+
+  return ((matchingInterests + matchingHobbies) /
+          (totalInterests + totalHobbies)) *
+      100;
+}

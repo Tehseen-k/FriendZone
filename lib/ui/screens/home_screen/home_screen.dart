@@ -1,24 +1,15 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, unused_local_variable, prefer_final_fields, unused_field
 
 import 'package:code_structure/core/constants/colors.dart';
 import 'package:code_structure/core/constants/text_style.dart';
-import 'package:code_structure/custom_widgets/custom_upcoming_events.dart';
-import 'package:code_structure/custom_widgets/friend_zone/compatibility_score.dart';
-import 'package:code_structure/custom_widgets/friend_zone/nearby_matches.dart';
-import 'package:code_structure/custom_widgets/friend_zone/schedual_meetups.dart';
 import 'package:code_structure/main.dart';
 import 'package:code_structure/ui/screens/compatibility_screen/compatibility_score_view.dart';
 import 'package:code_structure/ui/screens/event/event_info_screen.dart';
 import 'package:code_structure/ui/screens/group/group_info_screen.dart';
 import 'package:code_structure/ui/screens/home_screen/home_veiw_model.dart';
-import 'package:code_structure/ui/screens/nearby_matches/nearby_view.dart';
-import 'package:code_structure/ui/screens/shedule_events/shedule_events_screen.dart';
-import 'package:code_structure/ui/screens/shedule_meetups/shedule_screen.dart';
-import 'package:code_structure/ui/screens/up_coming/up_coming_screen.dart';
 import 'package:code_structure/ui/screens/user_profile_screen/user_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:provider/provider.dart';
 import 'package:code_structure/ui/widgets/group_card.dart';
@@ -164,17 +155,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-      //    if (onSeeAll != null)
-            // TextButton(
-            //   onPressed: onSeeAll,
-            //   child: Text(
-            //     "See All",
-            //     style: TextStyle(
-            //       color: primaryColor,
-            //       fontWeight: FontWeight.w600,
-            //     ),
-            //   ),
-            // ),
+          //    if (onSeeAll != null)
+          // TextButton(
+          //   onPressed: onSeeAll,
+          //   child: Text(
+          //     "See All",
+          //     style: TextStyle(
+          //       color: primaryColor,
+          //       fontWeight: FontWeight.w600,
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );
@@ -207,6 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 150.w,
             margin: EdgeInsets.only(right: 16.w),
             child: Card(
+              color: whiteColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.r),
               ),
@@ -217,7 +209,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           CompatibiltyScore(matchedUser: user)));
                 },
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Stack(
                       alignment: Alignment.bottomRight,
@@ -279,6 +272,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Padding(
                       padding: EdgeInsets.all(8.w),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Text(
                             user.username,
@@ -606,7 +601,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return SizedBox(
-      height: 280.h,
+      height: 300.h,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -732,188 +727,4 @@ _appBar() {
       20.horizontalSpace,
     ],
   );
-}
-
-_compabilityScore(HomeScreenVeiwModel model) {
-  return model.matchedUsers.isNotEmpty
-      ? SizedBox(
-          height: 185,
-          width: double.infinity,
-          child: ListView.builder(
-            itemCount: model.matchedUsers.length,
-            scrollDirection: Axis.horizontal,
-            shrinkWrap: true,
-            itemBuilder: (BuildContext context, int index) {
-              return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => CompatibiltyScore(
-                                  matchedUser: model.matchedUsers[index]!,
-                                )));
-                  },
-                  child: CustomCompatibilityScorewidget(
-                      matchedUser: model.matchedUsers[index]!));
-            },
-          ),
-        )
-      : Container(
-          height: 185,
-          width: double.infinity,
-          margin: EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.people_outline,
-                size: 50,
-                color: Colors.grey[400],
-              ),
-              SizedBox(height: 10),
-              Text(
-                "No Matches Found Yet",
-                style: GoogleFonts.nunito(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[700],
-                ),
-              ),
-              SizedBox(height: 5),
-              Text(
-                "Keep exploring to find your perfect match!",
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        );
-}
-
-_nearByMatches(HomeScreenVeiwModel model, double screenWidth) {
-  print("neaar by user heree ${model.nearbyUsers}");
-  return model.nearbyUsers.isNotEmpty
-      ? SizedBox(
-          height: 290,
-          width: screenWidth * 0.9,
-          child: ListView.builder(
-            itemCount: model.nearbyUsers.length,
-            shrinkWrap: true,
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (BuildContext context, int index) {
-              return GestureDetector(
-                onTap: () {
-                  final compatibilityScore =
-                      calculateCompatibilityScore(model.nearbyUsers[index]!);
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => UserProfileScreen(
-                            matchedUser: model.nearbyUsers[index]!,
-                            compatibilityScore: compatibilityScore,
-                          )));
-                },
-                child: CustomNearbyMatchesWidget(
-                    Object_nearbyMatches: model.nearbyUsers[index]!),
-              );
-            },
-          ),
-        )
-      : Container(
-          height: 290,
-          width: screenWidth * 0.9,
-          margin: EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.location_off_outlined,
-                size: 50,
-                color: Colors.grey[400],
-              ),
-              SizedBox(height: 10),
-              Text(
-                "No Nearby Matches",
-                style: GoogleFonts.nunito(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[700],
-                ),
-              ),
-              SizedBox(height: 5),
-              Text(
-                "Expand your search radius to find more people!",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        );
-}
-
-_upComingEvents(HomeScreenVeiwModel model, double screenheight) {
-  return model.upComingActivites.isNotEmpty
-      ? SizedBox(
-          height: screenheight * 0.31,
-          width: double.infinity,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: model.upComingActivites.length,
-            itemBuilder: (BuildContext context, int index) {
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => UpComingScreen()));
-                },
-                child: CustomUpcomingEvents(
-                    upComingActivities: model.upComingActivites[index]),
-              );
-            },
-          ),
-        )
-      : Text(
-          "list upcoming activities is epmty",
-          style: GoogleFonts.nunito(
-              fontWeight: FontWeight.w800, fontSize: 17, color: Colors.black),
-        );
-}
-
-_sheduleMeeting(HomeScreenVeiwModel model, double screenheight) {
-  return model.listSchedualMeetups.isNotEmpty
-      ? SizedBox(
-          height: screenheight * 0.31,
-          width: double.infinity,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: model.listSchedualMeetups.length,
-            itemBuilder: (BuildContext context, int index) {
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => SheduleScreen()));
-                },
-                child: CustomScheduleMeetUpsWidget(
-                    Object_scgedualMeetUps: model.listSchedualMeetups[index]),
-              );
-            },
-          ),
-        )
-      : Text(
-          "list is epmty",
-          style: GoogleFonts.nunito(
-              fontWeight: FontWeight.w500, fontSize: 17, color: Colors.black),
-        );
 }

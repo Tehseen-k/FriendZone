@@ -1,9 +1,8 @@
+// ignore_for_file: depend_on_referenced_packages
+
 import 'package:code_structure/core/constants/colors.dart';
 import 'package:code_structure/core/constants/strings.dart';
 import 'package:code_structure/core/constants/text_style.dart';
-import 'package:code_structure/custom_widgets/buttons/custom_button.dart';
-import 'package:code_structure/custom_widgets/friend_zone/multimedia_introduction.dart';
-import 'package:code_structure/custom_widgets/friend_zone/profile_2_listyview.dart';
 import 'package:code_structure/main.dart';
 import 'package:code_structure/models/User.dart';
 import 'package:code_structure/ui/screens/chat_screen/chat_screen.dart';
@@ -19,7 +18,8 @@ import 'package:url_launcher/url_launcher.dart';
 class UserProfileScreen extends StatefulWidget {
   final User matchedUser;
   final double compatibilityScore;
-  const UserProfileScreen({super.key, required this.matchedUser, required this.compatibilityScore});
+  const UserProfileScreen(
+      {super.key, required this.matchedUser, required this.compatibilityScore});
 
   @override
   State<UserProfileScreen> createState() => _UserProfileScreenState();
@@ -27,7 +27,7 @@ class UserProfileScreen extends StatefulWidget {
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   Map<String, VideoPlayerController> _videoControllers = {};
-  
+
   @override
   void initState() {
     super.initState();
@@ -47,7 +47,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -65,7 +64,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   children: [
                     _buildProfileHeader(),
                     25.verticalSpace,
-                    _buildActionButtons(context,widget.matchedUser),
+                    _buildActionButtons(context, widget.matchedUser),
                     25.verticalSpace,
                     _buildVideoSection(),
                     25.verticalSpace,
@@ -129,10 +128,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       );
                     },
                   )
-              
                 : CircleAvatar(
                     radius: 80,
-                    backgroundImage: AssetImage("$dynamicAssets/default_avatar.png"),
+                    backgroundImage:
+                        AssetImage("$dynamicAssets/default_avatar.png"),
                   ),
           ),
         ),
@@ -153,7 +152,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [primaryColor.withOpacity(0.1), Colors.blue.withOpacity(0.1)],
+              colors: [
+                primaryColor.withOpacity(0.1),
+                Colors.blue.withOpacity(0.1)
+              ],
             ),
             borderRadius: BorderRadius.circular(20),
           ),
@@ -176,7 +178,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Widget _buildVideoSection() {
     if (widget.matchedUser.profileVideoKey?.isEmpty ?? true) return SizedBox();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -193,9 +195,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             itemBuilder: (context, index) {
               final videoKey = widget.matchedUser.profileVideoKey![index];
               final controller = _videoControllers[videoKey];
-              
+
               if (controller == null) return SizedBox();
-              
+
               return Container(
                 width: 140.w,
                 margin: EdgeInsets.only(right: 12),
@@ -413,7 +415,12 @@ Widget _buildActionButtons(BuildContext context, User matchedUser) {
             margin: EdgeInsets.only(right: 8),
             child: InkWell(
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(currentUser: userModel!, participants: [matchedUser])));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ChatScreen(
+                            currentUser: userModel!,
+                            participants: [matchedUser])));
               },
               child: Container(
                 height: 48,
@@ -516,11 +523,13 @@ Widget _buildPersonalInfo(User user) {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: user.interests!.map((interest) => Chip(
-              label: Text(interest),
-              backgroundColor: primaryColor.withOpacity(0.1),
-              labelStyle: TextStyle(color: primaryColor),
-            )).toList(),
+            children: user.interests!
+                .map((interest) => Chip(
+                      label: Text(interest),
+                      backgroundColor: primaryColor.withOpacity(0.1),
+                      labelStyle: TextStyle(color: primaryColor),
+                    ))
+                .toList(),
           ),
           20.verticalSpace,
         ],
@@ -533,11 +542,13 @@ Widget _buildPersonalInfo(User user) {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: user.hobbies!.map((hobby) => Chip(
-              label: Text(hobby),
-              backgroundColor: Colors.purple.withOpacity(0.1),
-              labelStyle: TextStyle(color: Colors.purple[900]),
-            )).toList(),
+            children: user.hobbies!
+                .map((hobby) => Chip(
+                      label: Text(hobby),
+                      backgroundColor: Colors.purple.withOpacity(0.1),
+                      labelStyle: TextStyle(color: Colors.purple[900]),
+                    ))
+                .toList(),
           ),
           20.verticalSpace,
         ],
@@ -550,7 +561,8 @@ Widget _buildPersonalInfo(User user) {
           GestureDetector(
             onTap: () {
               if (user.latitude != null && user.longitude != null) {
-                final url = 'https://www.google.com/maps/search/?api=1&query=${user.latitude},${user.longitude}';
+                final url =
+                    'https://www.google.com/maps/search/?api=1&query=${user.latitude},${user.longitude}';
                 launchUrl(Uri.parse(url));
               }
             },

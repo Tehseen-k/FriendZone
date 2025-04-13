@@ -61,8 +61,9 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
         where: EventAttendee.EVENT.eq(widget.event.id),
       );
       final response = await Amplify.API.query(request: request).response;
-      attendees = response.data?.items.whereType<EventAttendee>().toList() ?? [];
-      
+      attendees =
+          response.data?.items.whereType<EventAttendee>().toList() ?? [];
+
       // Get current user's status
       final userAttendee = attendees.firstWhere(
         (a) => a.user.id == widget.currentUser.id,
@@ -78,9 +79,10 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
     try {
       final request = ModelQueries.list(
         GroupMember.classType,
-        where: GroupMember.GROUP.eq(widget.event.group.id)
-          .and(GroupMember.USER.eq(widget.currentUser.id))
-          .and(GroupMember.STATUS.eq('active')),
+        where: GroupMember.GROUP
+            .eq(widget.event.group.id)
+            .and(GroupMember.USER.eq(widget.currentUser.id))
+            .and(GroupMember.STATUS.eq('active')),
       );
       final response = await Amplify.API.query(request: request).response;
       isGroupMember = response.data?.items.isNotEmpty ?? false;
@@ -88,22 +90,19 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
       print('Error checking group membership: $e');
     }
   }
-Group? group;
-    Future<void> getgroup() async {
+
+  Group? group;
+  Future<void> getgroup() async {
     try {
       final request = ModelQueries.get(
-        Group.classType,
-        GroupModelIdentifier(id: widget.event.group.id)
-      
-      );
+          Group.classType, GroupModelIdentifier(id: widget.event.group.id));
       final response = await Amplify.API.query(request: request).response;
       final grp = response.data;
-      group=grp;
+      group = grp;
     } catch (e) {
       print('Error checking group membership: $e');
     }
   }
-
 
   Future<void> _updateAttendanceStatus(String status) async {
     try {
@@ -121,9 +120,11 @@ Group? group;
         final existingAttendee = attendees.firstWhere(
           (a) => a.user.id == widget.currentUser.id,
         );
-        await Amplify.API.mutate(
-          request: ModelMutations.delete(existingAttendee),
-        ).response;
+        await Amplify.API
+            .mutate(
+              request: ModelMutations.delete(existingAttendee),
+            )
+            .response;
       }
 
       // Create new attendance
@@ -133,9 +134,11 @@ Group? group;
         status: status,
       );
 
-      await Amplify.API.mutate(
-        request: ModelMutations.create(attendee),
-      ).response;
+      await Amplify.API
+          .mutate(
+            request: ModelMutations.create(attendee),
+          )
+          .response;
 
       await _loadAttendees();
     } catch (e) {
@@ -185,7 +188,8 @@ Group? group;
                 fit: BoxFit.cover,
               )
             : Container(
-                color: _getEventTypeColor(widget.event.eventType).withOpacity(0.1),
+                color:
+                    _getEventTypeColor(widget.event.eventType).withOpacity(0.1),
                 child: Icon(
                   _getEventTypeIcon(widget.event.eventType),
                   size: 64.sp,
@@ -577,7 +581,7 @@ Group? group;
   String _formatDateTime(DateTime start, DateTime end) {
     final dateFormat = DateFormat('EEEE, MMMM d');
     final timeFormat = DateFormat('h:mm a');
-    
+
     if (start.day == end.day) {
       return '${dateFormat.format(start)}\n${timeFormat.format(start)} - ${timeFormat.format(end)}';
     } else {

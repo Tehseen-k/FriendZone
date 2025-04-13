@@ -1,6 +1,5 @@
 import 'package:amplify_api/amplify_api.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:flutter/foundation.dart';
 import 'package:code_structure/models/ChatRoom.dart';
 import 'package:code_structure/models/ChatParticipant.dart';
@@ -24,74 +23,74 @@ class ChatsListViewModel extends ChangeNotifier {
     await loadChatsAndGroups();
   }
 
- Future<void> loadChatsAndGroups() async {
-  try {
-    print('Starting loadChatsAndGroups...');
-    isLoading = true;
-    notifyListeners();
+  Future<void> loadChatsAndGroups() async {
+    try {
+      print('Starting loadChatsAndGroups...');
+      isLoading = true;
+      notifyListeners();
 
-    // Load personal chats (non-group chats only)
-    print('Loading personal chats...');
-    await loadChats();
-    print('Personal chats loaded successfully');
+      // Load personal chats (non-group chats only)
+      print('Loading personal chats...');
+      await loadChats();
+      print('Personal chats loaded successfully');
 
-    // Load groups where user is admin
-    print('Loading admin groups for user ${currentUser.id}...');
-    final adminGroupsRequest = ModelQueries.list(
-      Group.classType,
-      where: Group.ADMIN.contains(currentUser.id),
-    );
-    final adminGroupsResponse = await Amplify.API.query(
-      request: adminGroupsRequest
-    ).response;
-    print('Admin groups response received: ${adminGroupsResponse.data?.items.length ?? 0} groups found');
+      // Load groups where user is admin
+      print('Loading admin groups for user ${currentUser.id}...');
+      final adminGroupsRequest = ModelQueries.list(
+        Group.classType,
+        where: Group.ADMIN.contains(currentUser.id),
+      );
+      final adminGroupsResponse =
+          await Amplify.API.query(request: adminGroupsRequest).response;
+      print(
+          'Admin groups response received: ${adminGroupsResponse.data?.items.length ?? 0} groups found');
 
-    // Load group memberships
-    print('Loading group memberships...');
-    final membershipRequest = ModelQueries.list(
-      GroupMember.classType,
-      where: GroupMember.USER.contains(currentUser.id),
-    );
-    final membershipResponse = await Amplify.API.query(
-      request: membershipRequest
-    ).response;
-    final memberships = membershipResponse.data?.items.whereType<GroupMember>().toList() ?? [];
-    print('Found ${memberships.length} group memberships');
+      // Load group memberships
+      print('Loading group memberships...');
+      final membershipRequest = ModelQueries.list(
+        GroupMember.classType,
+        where: GroupMember.USER.contains(currentUser.id),
+      );
+      final membershipResponse =
+          await Amplify.API.query(request: membershipRequest).response;
+      final memberships =
+          membershipResponse.data?.items.whereType<GroupMember>().toList() ??
+              [];
+      print('Found ${memberships.length} group memberships');
 
-    // Fetch complete group data for each membership
-    print('Fetching complete group data for each membership...');
-    final memberGroups = <Group>[];
-    
-    for (final membership in memberships) {
-      if (membership.status == 'active' && membership.group != null) {
-        final groupRequest = ModelQueries.get(
-          Group.classType,
-          GroupModelIdentifier(id: membership.group!.id)
-        );
-        final groupResponse = await Amplify.API.query(request: groupRequest).response;
-        if (groupResponse.data != null) {
-          final group = groupResponse.data as Group;
-          memberGroups.add(group);
+      // Fetch complete group data for each membership
+      print('Fetching complete group data for each membership...');
+      final memberGroups = <Group>[];
+
+      for (final membership in memberships) {
+        if (membership.status == 'active' && membership.group != null) {
+          final groupRequest = ModelQueries.get(
+              Group.classType, GroupModelIdentifier(id: membership.group!.id));
+          final groupResponse =
+              await Amplify.API.query(request: groupRequest).response;
+          if (groupResponse.data != null) {
+            final group = groupResponse.data as Group;
+            memberGroups.add(group);
+          }
         }
       }
+
+      // Combine groups
+      final Set<Group> uniqueGroups = {
+        ...adminGroupsResponse.data?.items.whereType<Group>() ?? [],
+        ...memberGroups
+      };
+      groups = uniqueGroups.toList();
+    } catch (e, stackTrace) {
+      print('Error loading chats and groups:');
+      print('Error: $e');
+      print('Stack trace: $stackTrace');
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
-
-    // Combine groups
-    final Set<Group> uniqueGroups = {
-      ...adminGroupsResponse.data?.items.whereType<Group>() ?? [],
-      ...memberGroups
-    };
-    groups = uniqueGroups.toList();
-
-  } catch (e, stackTrace) {
-    print('Error loading chats and groups:');
-    print('Error: $e');
-    print('Stack trace: $stackTrace');
-  } finally {
-    isLoading = false;
-    notifyListeners();
   }
-}
+
   Future<void> loadChats() async {
     try {
       isLoading = true;
@@ -103,9 +102,11 @@ class ChatsListViewModel extends ChangeNotifier {
         where: ChatParticipant.USER.contains(currentUser.id),
       );
 
-      final participantsResponse = await Amplify.API.query(
-        request: participantsRequest,
-      ).response;
+      final participantsResponse = await Amplify.API
+          .query(
+            request: participantsRequest,
+          )
+          .response;
 
       final participants = participantsResponse.data?.items ?? [];
 
@@ -113,15 +114,15 @@ class ChatsListViewModel extends ChangeNotifier {
       chatRooms = [];
       for (final participant in participants) {
         if (participant == null) continue;
-        
+
         final chatRoom = participant.chatRoom;
         // Only add non-group chats to the chat list
         if (!chatRoom.isGroupChat) {
           chatRooms.add(chatRoom);
-          
+
           // Load other participants for this chat room
           await _loadChatParticipants(chatRoom);
-          
+
           // Load unread count
           await _loadUnreadCount(chatRoom);
         }
@@ -136,7 +137,6 @@ class ChatsListViewModel extends ChangeNotifier {
         if (bTime == null) return -1;
         return bTime.compareTo(aTime);
       });
-
     } catch (e) {
       print('Error loading chats: $e');
     } finally {
@@ -159,7 +159,6 @@ class ChatsListViewModel extends ChangeNotifier {
           .where((p) => p?.user.id != currentUser.id)
           .map((p) => p!.user)
           .toList();
-
     } catch (e) {
       print('Error loading chat participants: $e');
     }
@@ -194,22 +193,27 @@ class ChatsListViewModel extends ChangeNotifier {
         where: ChatParticipant.CHATROOM.contains(chatRoom.id),
       );
 
-      final participantsResponse = await Amplify.API.query(
-        request: participantsRequest,
-      ).response;
+      final participantsResponse = await Amplify.API
+          .query(
+            request: participantsRequest,
+          )
+          .response;
 
       for (final participant in participantsResponse.data?.items ?? []) {
         if (participant == null) continue;
-        await Amplify.API.mutate(
-          request: ModelMutations.delete(participant as ChatParticipant),
-        ).response;
+        await Amplify.API
+            .mutate(
+              request: ModelMutations.delete(participant as ChatParticipant),
+            )
+            .response;
       }
 
       // Then delete the chat room
-      await Amplify.API.mutate(
-        request: ModelMutations.delete(chatRoom),
-      ).response;
-
+      await Amplify.API
+          .mutate(
+            request: ModelMutations.delete(chatRoom),
+          )
+          .response;
     } catch (e) {
       print('Error deleting chat: $e');
       // Reload chats in case of error
@@ -241,13 +245,14 @@ class ChatsListViewModel extends ChangeNotifier {
         GroupMember.classType,
         where: GroupMember.GROUP.contains(group.id),
       );
-      
+
       final response = await Amplify.API.query(request: request).response;
       final members = response.data?.items
-          .whereType<GroupMember>()
-          .where((member) => member.status == 'active')
-          .map((member) => member.user)
-          .toList() ?? [];
+              .whereType<GroupMember>()
+              .where((member) => member.status == 'active')
+              .map((member) => member.user)
+              .toList() ??
+          [];
 
       return members;
     } catch (e) {
@@ -255,4 +260,4 @@ class ChatsListViewModel extends ChangeNotifier {
       return [];
     }
   }
-} 
+}

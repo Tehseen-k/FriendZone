@@ -11,6 +11,7 @@ analyzer:
   errors:
     recursive_getters: ignore
     deprecated_member_use: ignore
+    unused_field: ignore ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

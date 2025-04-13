@@ -1,7 +1,7 @@
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:code_structure/main.dart';
 import 'package:code_structure/models/User.dart';
-import 'package:code_structure/ui/screens/auth/setup_profile/setup_profile_screen.dart';
+import 'package:code_structure/ui/screens/setup_profile/setup_profile_screen.dart';
 import 'package:code_structure/ui/screens/home_screen/home_veiw_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -94,7 +94,8 @@ class ProfileScreen extends StatelessWidget {
                 icon: Icons.help_outline,
                 text: 'Help & Support',
                 onPressed: () {
-                  launchURL('https://www.freeprivacypolicy.com/live/644989b1-30df-4fa9-946b-09e7359ca508');
+                  launchURL(
+                      'https://www.freeprivacypolicy.com/live/644989b1-30df-4fa9-946b-09e7359ca508');
                 },
               ),
               SizedBox(height: 32.h),
@@ -105,11 +106,13 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   _buildLinkButton(
                     text: 'Privacy Policy',
-                    onTap: () => launchURL('https://www.freeprivacypolicy.com/live/644989b1-30df-4fa9-946b-09e7359ca508'),
+                    onTap: () => launchURL(
+                        'https://www.freeprivacypolicy.com/live/644989b1-30df-4fa9-946b-09e7359ca508'),
                   ),
                   _buildLinkButton(
                     text: 'Terms',
-                    onTap: () => launchURL('https://www.freeprivacypolicy.com/live/644989b1-30df-4fa9-946b-09e7359ca508'),
+                    onTap: () => launchURL(
+                        'https://www.freeprivacypolicy.com/live/644989b1-30df-4fa9-946b-09e7359ca508'),
                   ),
                 ],
               ),
@@ -125,34 +128,37 @@ class ProfileScreen extends StatelessWidget {
   }
 
   // Profile Image Widget
- Widget _buildProfileImageWithPreview(BuildContext context, User userModel) {
-    return userModel.profileImageKey!=null?FutureBuilder<String>(
-      future: getFileUrl(userModel.profileImageKey!),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return GestureDetector(
-            onTap: () => showImagePreview(snapshot.data!, context),
-            child: Hero(
-              tag: 'profileImage',
-              child: CircleAvatar(
+  Widget _buildProfileImageWithPreview(BuildContext context, User userModel) {
+    return userModel.profileImageKey != null
+        ? FutureBuilder<String>(
+            future: getFileUrl(userModel.profileImageKey!),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return GestureDetector(
+                  onTap: () => showImagePreview(snapshot.data!, context),
+                  child: Hero(
+                    tag: 'profileImage',
+                    child: CircleAvatar(
+                      radius: 70.r,
+                      backgroundImage: NetworkImage(snapshot.data!),
+                    ),
+                  ),
+                );
+              }
+              return CircleAvatar(
                 radius: 70.r,
-                backgroundImage: NetworkImage(snapshot.data!),
-              ),
-            ),
+                backgroundColor: Colors.grey[300],
+                child: Icon(Icons.person, size: 50, color: Colors.white),
+              );
+            },
+          )
+        : CircleAvatar(
+            radius: 70.r,
+            backgroundColor: Colors.grey[300],
+            child: Icon(Icons.person, size: 50, color: Colors.white),
           );
-        }
-        return CircleAvatar(
-          radius: 70.r,
-          backgroundColor: Colors.grey[300],
-          child: Icon(Icons.person, size: 50, color: Colors.white),
-        );
-      },
-    ): CircleAvatar(
-          radius: 70.r,
-          backgroundColor: Colors.grey[300],
-          child: Icon(Icons.person, size: 50, color: Colors.white),
-        );
   }
+
   // Action Button Widget (Edit Profile, Help & Support)
   Widget _buildActionButton({
     required IconData icon,

@@ -32,6 +32,8 @@ class AppAssets {
   String detail22 = "$dynamicAssets/detail22.png";
   String detail4 = "$dynamicAssets/detail4.png";
   String detailmain = "$dynamicAssets/detailmain.png";
+  String woman = "$dynamicAssets/woman.png";
+  String orbit = "$staticAssets/start.png";
 
   ///
   /// Icons Assets

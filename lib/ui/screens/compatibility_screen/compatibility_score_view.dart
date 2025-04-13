@@ -16,7 +16,7 @@ import 'package:provider/provider.dart';
 
 class CompatibiltyScore extends StatefulWidget {
   User matchedUser;
-   CompatibiltyScore({super.key, required this.matchedUser});
+  CompatibiltyScore({super.key, required this.matchedUser});
 
   @override
   State<CompatibiltyScore> createState() => _CompatibiltyScoreState();
@@ -29,8 +29,9 @@ class _CompatibiltyScoreState extends State<CompatibiltyScore> {
       create: (context) => KeyFactorCSViewModel(),
       child: Consumer<KeyFactorCSViewModel>(
         builder: (context, model, child) {
-          final compatibilityScore = calculateCompatibilityScore(widget.matchedUser);
-          
+          final compatibilityScore =
+              calculateCompatibilityScore(widget.matchedUser);
+
           return Scaffold(
             body: SingleChildScrollView(
               child: Column(
@@ -68,99 +69,6 @@ class _CompatibiltyScoreState extends State<CompatibiltyScore> {
                     matchedUser: widget.matchedUser,
                     compatibilityScore: compatibilityScore,
                   ),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Key Factors",
-                          style: GoogleFonts.nunito(
-                              fontWeight: FontWeight.w800, fontSize: 17),
-                        ),
-                        Icon(Icons.arrow_forward_ios),
-                      ],
-                    ),
-                  ),
-
-                  ///
-                  /// GridView Data Source
-                  ///
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: GridView.builder(
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 1.5,
-                              mainAxisSpacing: 10,
-                              crossAxisSpacing: 10),
-                      itemCount: model.listKeyFactoCS.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return GestureDetector(
-                          onTap: () {},
-                          child: CustomKeyFactorCompatibilityScoreWidget(
-                              Object_KeyFactorCS:
-                                  model.listKeyFactoCS[index]),
-                        );
-                      },
-                    ),
-                  ),
-
-                  // Padding(
-                  //   padding: const EdgeInsets.all(8.0),
-                  //   child: Text(
-                  //       "add user profile type info check in Figma i made a custom widget but ..."),
-                  // ),
-                  // 20.verticalSpace,
-
-                  ///
-                  /// Custom Button
-                  ///
-                  //   CustomButton(
-                  //     name: "Add to Network",
-                  //     onPressed: () {},
-                  //     textColor: whiteCoolor,
-                  //   ),
-
-                  //   20.verticalSpace,
-                  //   Padding(
-                  //     padding: const EdgeInsets.all(8.0),
-                  //     child: Text(
-                  //       "Actionable Tips",
-                  //       style: GoogleFonts.nunito(
-                  //           fontWeight: FontWeight.w800, fontSize: 17),
-                  //     ),
-                  //   ),
-
-                  //   Center(
-                  //     child: SizedBox(
-                  //       width: 350.w,
-                  //       child: Divider(
-                  //         height: 1,
-                  //         color: Colors.grey[300],
-                  //       ),
-                  //     ),
-                  //   ),
-                  //   SizedBox(
-                  //     height: 400.h,
-                  //     child: Text(
-                  //         "add tips idk how dynamically it is add how many tips user want to add "),
-                  //   ),
-                  //   20.verticalSpace,
-                  //   CustomExpend_Icon_Button(
-                  //       icon: Icon(Icons.info_outline),
-                  //       text: "View More Details"),
-                  //   20.verticalSpace,
-                  //   CustomExpend_Icon_Button(
-                  //       icon: Icon(Icons.message), text: "Send a Message,"),
-                  //   120.verticalSpace
                 ],
               ),
             ),
@@ -191,15 +99,19 @@ class _CompatibilityCardState extends State<CompatibilityCard> {
   @override
   Widget build(BuildContext context) {
     final compatibilityScore = widget.compatibilityScore;
-    
+
     // Calculate common interests and hobbies
     final commonInterests = userModel?.interests
-        ?.where((interest) => widget.matchedUser.interests?.contains(interest) ?? false)
-        .toList() ?? [];
-    
+            ?.where((interest) =>
+                widget.matchedUser.interests?.contains(interest) ?? false)
+            .toList() ??
+        [];
+
     final commonHobbies = userModel?.hobbies
-        ?.where((hobby) => widget.matchedUser.hobbies?.contains(hobby) ?? false)
-        .toList() ?? [];
+            ?.where(
+                (hobby) => widget.matchedUser.hobbies?.contains(hobby) ?? false)
+            .toList() ??
+        [];
 
     // Calculate distance
     final distance = calculateDistance(
@@ -294,34 +206,33 @@ class _CompatibilityCardState extends State<CompatibilityCard> {
                       children: [
                         Column(
                           children: [
-                        widget.matchedUser.profileImageKey != null
-                                  ?    FutureBuilder<String>(
-                          future: getFileUrl(widget.matchedUser.profileImageKey!),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              return 
-                              Hero(
-                                tag: 'profileImage',
-                                child: CircleAvatar(
-                                  backgroundImage: NetworkImage(snapshot.data!),
-                                  radius: 25,
-                                ),
-                              );
-                            }
-                            return Center(
-                              child: CircularProgressIndicator(
-                                color: primaryColor,
-                              ),
-                            );
-                          },
-                        ):
-                     
-                            CircleAvatar(
-                              radius: 25,
-                            
-                              child:Icon(Icons.person, color: Colors.white)
-                                  ,
-                            ),
+                            widget.matchedUser.profileImageKey != null
+                                ? FutureBuilder<String>(
+                                    future: getFileUrl(
+                                        widget.matchedUser.profileImageKey!),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        return Hero(
+                                          tag: 'profileImage',
+                                          child: CircleAvatar(
+                                            backgroundImage:
+                                                NetworkImage(snapshot.data!),
+                                            radius: 25,
+                                          ),
+                                        );
+                                      }
+                                      return Center(
+                                        child: CircularProgressIndicator(
+                                          color: primaryColor,
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : CircleAvatar(
+                                    radius: 25,
+                                    child:
+                                        Icon(Icons.person, color: Colors.white),
+                                  ),
                             SizedBox(height: 8),
                             Text(
                               widget.matchedUser.username ?? "User",
@@ -438,8 +349,10 @@ class _CompatibilityCardState extends State<CompatibilityCard> {
               // Compact interests and hobbies section
               if (commonInterests.isNotEmpty || commonHobbies.isNotEmpty)
                 AnimatedCrossFade(
+                  alignment: Alignment.center,
                   firstChild: _buildCompactView(commonInterests, commonHobbies),
-                  secondChild: _buildExpandedView(commonInterests, commonHobbies),
+                  secondChild:
+                      _buildExpandedView(commonInterests, commonHobbies),
                   crossFadeState: _isExpanded
                       ? CrossFadeState.showSecond
                       : CrossFadeState.showFirst,
@@ -447,12 +360,12 @@ class _CompatibilityCardState extends State<CompatibilityCard> {
                 ),
 
               SizedBox(height: 16),
-              
+
               // Add the communication style card here
               _buildCommunicationStyleCard(commonInterests),
-              
+
               SizedBox(height: 16),
-              
+
               // View Full Profile button
               Center(
                 child: Container(
@@ -478,14 +391,18 @@ class _CompatibilityCardState extends State<CompatibilityCard> {
                   ),
                   child: ElevatedButton(
                     onPressed: () {
-                     Navigator.of(context).push(MaterialPageRoute(builder: (context) => UserProfileScreen(matchedUser: widget.matchedUser,compatibilityScore: compatibilityScore,)));
-                  
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => UserProfileScreen(
+                                matchedUser: widget.matchedUser,
+                                compatibilityScore: compatibilityScore,
+                              )));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       foregroundColor: Colors.white,
                       shadowColor: Colors.transparent,
-                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(25),
                       ),
@@ -522,12 +439,15 @@ class _CompatibilityCardState extends State<CompatibilityCard> {
     final remainingCount = totalItems - displayCount;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Wrap(
           spacing: 8,
           children: [
-            ...interests.take(displayCount).map((interest) => _buildChip(interest)),
+            ...interests
+                .take(displayCount)
+                .map((interest) => _buildChip(interest)),
             if (remainingCount > 0)
               GestureDetector(
                 onTap: () => setState(() => _isExpanded = true),
@@ -606,20 +526,54 @@ class _CompatibilityCardState extends State<CompatibilityCard> {
   String _suggestCommunicationStyle(List<String> commonInterests) {
     // Define communication style categories
     final Map<String, List<String>> communicationCategories = {
-      'Intellectual': ['books', 'science', 'philosophy', 'education', 'technology', 'research'],
-      'Creative': ['art', 'music', 'writing', 'photography', 'design', 'crafts'],
-      'Active': ['sports', 'fitness', 'outdoor', 'adventure', 'travel', 'hiking'],
-      'Social': ['networking', 'community', 'volunteering', 'events', 'socializing'],
-      'Professional': ['business', 'career', 'entrepreneurship', 'leadership', 'finance']
+      'Intellectual': [
+        'books',
+        'science',
+        'philosophy',
+        'education',
+        'technology',
+        'research'
+      ],
+      'Creative': [
+        'art',
+        'music',
+        'writing',
+        'photography',
+        'design',
+        'crafts'
+      ],
+      'Active': [
+        'sports',
+        'fitness',
+        'outdoor',
+        'adventure',
+        'travel',
+        'hiking'
+      ],
+      'Social': [
+        'networking',
+        'community',
+        'volunteering',
+        'events',
+        'socializing'
+      ],
+      'Professional': [
+        'business',
+        'career',
+        'entrepreneurship',
+        'leadership',
+        'finance'
+      ]
     };
 
     // Count matches in each category
     Map<String, int> categoryScores = {};
     for (var interest in commonInterests) {
       for (var category in communicationCategories.entries) {
-        if (category.value.any((keyword) => 
+        if (category.value.any((keyword) =>
             interest.toLowerCase().contains(keyword.toLowerCase()))) {
-          categoryScores[category.key] = (categoryScores[category.key] ?? 0) + 1;
+          categoryScores[category.key] =
+              (categoryScores[category.key] ?? 0) + 1;
         }
       }
     }
@@ -630,9 +584,8 @@ class _CompatibilityCardState extends State<CompatibilityCard> {
     }
 
     // Get the dominant communication style
-    var dominantStyle = categoryScores.entries
-        .reduce((a, b) => a.value > b.value ? a : b)
-        .key;
+    var dominantStyle =
+        categoryScores.entries.reduce((a, b) => a.value > b.value ? a : b).key;
 
     // Return specific suggestions based on dominant style
     switch (dominantStyle) {
@@ -679,7 +632,7 @@ class _CompatibilityCardState extends State<CompatibilityCard> {
         children: [
           Row(
             children: [
-              Icon(Icons.chat_bubble_outline, 
+              Icon(Icons.chat_bubble_outline,
                   color: Color(0xFF6A11CB), size: 20),
               SizedBox(width: 8),
               Text(
